@@ -17,8 +17,8 @@ jobs:
         run: |
           # Copia los archivos desde la raíz del repo a sus respectivas carpetas
           # Los renombramos a ".env" para que docker-compose los detecte automáticamente
-          cp ~/.env.frontend hospitalInfantil/Frontend/.env
-          cp ~/.env.backend hospitalInfantil/Backend/.env
+          cp ~/.env.frontend ./Frontend/.env
+          cp ~/.env.backend ./Backend/.env
 
       - name: 🚀 Desplegar Backend (C#)
         run: |
