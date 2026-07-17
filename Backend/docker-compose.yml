@@ -7,7 +7,7 @@ services:
     ports:
       - "8081:5000"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=http://+:5000
-    volumes:
-      - .:/app
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://0.0.0.0:5000
+
+    restart: unless-stopped
