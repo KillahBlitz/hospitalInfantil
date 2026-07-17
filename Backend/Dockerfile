@@ -11,6 +11,8 @@ WORKDIR /app
 
 COPY --from=build /app/publish .
 
+RUN ls -la
+
 EXPOSE 8080
 
 ENTRYPOINT ["dotnet", "Backend.dll"]
