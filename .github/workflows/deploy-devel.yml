@@ -22,12 +22,12 @@ jobs:
 
       - name: 🚀 Desplegar Backend (C#)
         run: |
-          cd hospitalInfantil/Backend
+          cd /Backend
           # Construye la nueva imagen y levanta el contenedor en segundo plano (-d)
           docker compose up -d --build
 
       - name: 🚀 Desplegar Frontend (React)
         run: |
-          cd hospitalInfantil/Frontend
+          cd /Frontend
           docker compose up -d --build
 
