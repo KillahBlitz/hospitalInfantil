@@ -1,0 +1,32 @@
+name: Deploy to Devel
+
+on:
+  push:
+    branches:
+      - devel
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: 📥 Checkout del código
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Preparar variables de entorno
+        run: |
+          # Copia los archivos desde la raíz del repo a sus respectivas carpetas
+          # Los renombramos a ".env" para que docker-compose los detecte automáticamente
+          cp ~/.env.frontend hospitalInfantil/Frontend/.env
+          cp ~/.env.backend hospitalInfantil/Backend/.env
+
+      - name: 🚀 Desplegar Backend (C#)
+        run: |
+          cd hospitalInfantil/Backend
+          # Construye la nueva imagen y levanta el contenedor en segundo plano (-d)
+          docker compose up -d --build
+
+      - name: 🚀 Desplegar Frontend (React)
+        run: |
+          cd hospitalInfantil/Frontend
+          docker compose up -d --build
