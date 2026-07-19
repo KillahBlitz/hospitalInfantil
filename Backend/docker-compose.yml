@@ -6,8 +6,6 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8081:5000"
-    environment:
-      ASPNETCORE_ENVIRONMENT: Development
-      ASPNETCORE_URLS: http://0.0.0.0:5000
-
+    env_file:
+      - .env
     restart: unless-stopped
