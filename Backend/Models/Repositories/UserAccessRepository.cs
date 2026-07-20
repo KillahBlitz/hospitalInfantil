@@ -1,0 +1,43 @@
+using Backend.Data;
+using Backend.Models.Schemas.UserAccess;
+using Microsoft.EntityFrameworkCore;
+
+namespace Backend.Models.Repositories;
+
+public class UserAccessRepository
+{
+    private readonly UserAccessDbContext _context;
+
+    public UserAccessRepository(UserAccessDbContext context)
+    {
+        _context = context;
+    }
+
+    public async Task<Usuario?> GetUserAuth(string alias)
+    {
+        return await _context.Usuarios
+            .FirstOrDefaultAsync(u => u.Alias == alias && u.Activo);
+    }
+
+    public async Task<Dictionary<string, Dictionary<int, List<int>>>> GetAccess(int usuarioId)
+    {
+        var permisos = await _context.UsuarioModuloPermisos
+            .Include(ump => ump.Modulo)
+                .ThenInclude(m => m.Area)
+            .Include(ump => ump.Permiso)
+            .Where(ump => ump.UsuarioId == usuarioId)
+            .ToListAsync();
+
+        return permisos
+            .GroupBy(p => p.Modulo.Area.Nombre)
+            .ToDictionary(
+                areaGroup => areaGroup.Key,
+                areaGroup => areaGroup
+                    .GroupBy(p => p.Modulo.Id)
+                    .ToDictionary(
+                        moduloGroup => moduloGroup.Key,
+                        moduloGroup => moduloGroup.Select(p => p.Permiso.Id).ToList()
+                    )
+            );
+    }
+}

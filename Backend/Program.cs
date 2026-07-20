@@ -1,4 +1,6 @@
 using Backend.Data;
+using Backend.Handlers;
+using Backend.Models.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -6,6 +8,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddSwaggerGen(); 
 builder.Services.AddOpenApi();
+
+builder.Services.AddScoped<UserAccessRepository>();
+builder.Services.AddScoped<AuthHandler>();
 
 builder.Services.AddDbContext<UserAccessDbContext>(options =>
 {
