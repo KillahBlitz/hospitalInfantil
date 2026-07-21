@@ -24,10 +24,10 @@ jobs:
         run: |
           cd ./Backend
 
-          # Limpia contenedores viejos/atorados con el mismo nombre
-          docker rm -f hospital-backend || true
+          if docker ps -a --format '{{.Names}}' | grep -qx 'hospital-backend'; then
+            docker rm -f hospital-backend
+          fi
 
-          # Reconstruye y levanta el backend
           docker compose up -d --build --remove-orphans
 
       - name: 🚀 Desplegar Frontend (React)
