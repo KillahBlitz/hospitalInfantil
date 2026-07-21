@@ -23,11 +23,16 @@ jobs:
       - name: 🚀 Desplegar Backend (C#)
         run: |
           cd ./Backend
-          # Construye la nueva imagen y levanta el contenedor en segundo plano (-d)
-          docker compose up -d --build
+
+          # Limpia contenedores viejos/atorados con el mismo nombre
+          docker rm -f hospital-backend || true
+
+          # Reconstruye y levanta el backend
+          docker compose up -d --build --remove-orphans
 
       - name: 🚀 Desplegar Frontend (React)
         run: |
           cd ./Frontend
-          docker compose up -d --build
+          docker rm -f myeconomy-frontend || true
+          docker compose up -d --build --remove-orphans
 
