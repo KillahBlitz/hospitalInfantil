@@ -1,33 +1,45 @@
-name: Deploy to Devel
+name: CI/CD Pipeline
 
 on:
   push:
     branches:
       - devel
+      - main
 
 jobs:
-  deploy:
+  preparar-deploy:
+    name: 🔍 Preparando deploy
     runs-on: self-hosted
+    steps:
+      - name: ⚡ Validar conexión y entorno del Runner
+        run: |
+          echo "Verificando estado del runner y conectividad..."
+          echo "Directorio de trabajo actual: $PWD"
+          echo "Usuario ejecutando: $(whoami)"
+          docker --version
+          docker compose version
+          echo "¡El runner está listo y conectado correctamente!"
 
+  deploy-devel:
+    name: 🚀 Deploy To Devel
+    needs: preparar-deploy
+    runs-on: self-hosted
+    if: github.ref == 'refs/heads/devel'
     steps:
       - name: 📥 Checkout del código
         uses: actions/checkout@v4
 
       - name: ⚙️ Preparar variables de entorno
         run: |
-          # Copia los archivos desde la raíz del repo a sus respectivas carpetas
-          # Los renombramos a ".env" para que docker-compose los detecte automáticamente
           cp ~/.env.frontend ./Frontend/.env
           cp ~/.env.backend ./Backend/.env
 
       - name: 🚀 Desplegar Backend (C#)
         run: |
           cd ./Backend
-
           if docker ps -a --format '{{.Names}}' | grep -qx 'hospital-backend'; then
             docker rm -f hospital-backend
           fi
-
           docker compose up -d --build --remove-orphans
 
       - name: 🚀 Desplegar Frontend (React)
@@ -36,3 +48,31 @@ jobs:
           docker rm -f myeconomy-frontend || true
           docker compose up -d --build --remove-orphans
 
+  deploy-prod:
+    name: 🚀 Deploy To Prod
+    needs: preparar-deploy
+    runs-on: self-hosted
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: 📥 Checkout del código
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Preparar variables de entorno
+        run: |
+          # Nota: Puedes ajustar estas rutas si en producción usas archivos .env distintos (ej. ~/.env.prod.backend)
+          cp ~/.env.frontend ./Frontend/.env
+          cp ~/.env.backend ./Backend/.env
+
+      - name: 🚀 Desplegar Backend (C#)
+        run: |
+          cd ./Backend
+          if docker ps -a --format '{{.Names}}' | grep -qx 'hospital-backend'; then
+            docker rm -f hospital-backend
+          fi
+          docker compose up -d --build --remove-orphans
+
+      - name: 🚀 Desplegar Frontend (React)
+        run: |
+          cd ./Frontend
+          docker rm -f myeconomy-frontend || true
+          docker compose up -d --build --remove-orphans
