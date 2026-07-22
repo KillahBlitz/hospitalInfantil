@@ -45,7 +45,7 @@ jobs:
       - name: 🚀 Desplegar Frontend (React)
         run: |
           cd ./Frontend
-          docker rm -f myeconomy-frontend || true
+          docker rm -f hospital-frontend || true
           docker compose up -d --build --remove-orphans
 
   deploy-prod:
@@ -57,22 +57,25 @@ jobs:
       - name: 📥 Checkout del código
         uses: actions/checkout@v4
 
-      - name: ⚙️ Preparar variables de entorno
+      - name: 🌐 Crear red compartida de producción (si no existe)
         run: |
-          # Nota: Puedes ajustar estas rutas si en producción usas archivos .env distintos (ej. ~/.env.prod.backend)
-          cp ~/.env.frontend ./Frontend/.env
-          cp ~/.env.backend ./Backend/.env
+          docker network inspect hospital-net-prod >/dev/null 2>&1 || docker network create hospital-net-prod
 
-      - name: 🚀 Desplegar Backend (C#)
+      - name: ⚙️ Preparar variables de entorno (producción)
+        run: |
+          cp ~/.env.frontprod ./Frontend/.env
+          cp ~/.env.backprod ./Backend/.env
+
+      - name: 🚀 Desplegar Backend (C#) - Producción
         run: |
           cd ./Backend
-          if docker ps -a --format '{{.Names}}' | grep -qx 'hospital-backend'; then
-            docker rm -f hospital-backend
+          if docker ps -a --format '{{.Names}}' | grep -qx 'hospital-backend-prod'; then
+            docker rm -f hospital-backend-prod
           fi
-          docker compose up -d --build --remove-orphans
+          docker compose -p hospital-prod -f docker-compose.prod.yml up -d --build --remove-orphans
 
-      - name: 🚀 Desplegar Frontend (React)
+      - name: 🚀 Desplegar Frontend (React) - Producción
         run: |
           cd ./Frontend
-          docker rm -f myeconomy-frontend || true
-          docker compose up -d --build --remove-orphans
+          docker rm -f hospital-frontend-prod || true
+          docker compose -p hospital-prod -f docker-compose.prod.yml up -d --build --remove-orphans
