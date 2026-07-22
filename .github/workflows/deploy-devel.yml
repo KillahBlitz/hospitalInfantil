@@ -37,16 +37,16 @@ jobs:
       - name: 🚀 Desplegar Backend (C#)
         run: |
           cd ./Backend
-          if docker ps -a --format '{{.Names}}' | grep -qx 'hospital-backend'; then
-            docker rm -f hospital-backend
+          if sudo docker ps -a --format '{{.Names}}' | grep -qx 'hospital-backend'; then
+            sudo docker rm -f hospital-backend
           fi
-          docker compose up -d --build --remove-orphans
+          sudo docker compose up -d --build --remove-orphans
 
       - name: 🚀 Desplegar Frontend (React)
         run: |
           cd ./Frontend
-          docker rm -f myeconomy-frontend || true
-          docker compose up -d --build --remove-orphans
+          sudo docker rm -f myeconomy-frontend || true
+          sudo docker compose up -d --build --remove-orphans
 
   deploy-prod:
     name: 🚀 Deploy To Prod
