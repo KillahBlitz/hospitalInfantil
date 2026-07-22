@@ -37,9 +37,6 @@ jobs:
       - name: 🚀 Desplegar Backend (C#)
         run: |
           cd ./Backend
-          if docker ps -a --format '{{.Names}}' | grep -qx 'hospital-backend'; then
-            docker rm -f hospital-backend
-          fi
           docker compose up -d --build --remove-orphans
 
       - name: 🚀 Desplegar Frontend (React)
