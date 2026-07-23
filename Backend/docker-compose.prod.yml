@@ -4,17 +4,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    # En producción NO exponemos el backend directamente al host.
-    # El acceso pasa por el frontend (nginx) mediante /api en el puerto 5000.
-    expose:
-      - "5000"
+    ports:
+      # Backend expuesto directamente en el puerto 5001 del host.
+      # El frontend le pega a http://<host>:5001/api/... sin pasar por nginx.
+      - "5001:5000"
     env_file:
       - .env
-    networks:
-      - hospital-net-prod
     restart: unless-stopped
-
-networks:
-  hospital-net-prod:
-    name: hospital-net-prod
-    external: true
