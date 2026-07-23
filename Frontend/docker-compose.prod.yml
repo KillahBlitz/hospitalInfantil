@@ -5,16 +5,8 @@ services:
       context: .
       dockerfile: Dockerfile.prod
     ports:
-      # Expone el frontend en el puerto 5000 del host. Las llamadas a /api
-      # las hace pasar nginx (reverse proxy) al contenedor hospital-backend-prod:5000.
+      # Frontend expuesto en el puerto 5000 del host.
       - "5000:80"
     env_file:
       - .env
-    networks:
-      - hospital-net-prod
     restart: unless-stopped
-
-networks:
-  hospital-net-prod:
-    name: hospital-net-prod
-    external: true
