@@ -1,0 +1,11 @@
+services:
+  backend:
+    container_name: hospital-backend
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8081:5000"
+    env_file:
+      - .env
+    restart: unless-stopped

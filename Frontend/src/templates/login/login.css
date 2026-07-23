@@ -1,0 +1,164 @@
+.login-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: #f5f2eb;
+  padding: 2rem;
+}
+
+.login-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 3rem 4rem;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+}
+
+.login-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1a3c34;
+  margin: 0 0 0.5rem;
+}
+
+.login-subtitle {
+  font-size: 0.95rem;
+  color: #6b7280;
+  margin: 0 0 2rem;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.form-input {
+  padding: 0.85rem 1rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  color: #333;
+  background: #fff;
+  transition: border-color 0.2s;
+}
+
+.form-input::placeholder {
+  color: #aaa;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #1a3c34;
+}
+
+.form-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: #1a1a1a;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #1a3c34;
+  cursor: pointer;
+}
+
+.recuperar-link {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #b91c1c;
+  text-decoration: none;
+}
+
+.recuperar-link:hover {
+  text-decoration: underline;
+}
+
+.login-btn {
+  width: 100%;
+  padding: 1rem;
+  background-color: #1a5c4b;
+  color: #ffffff;
+  font-size: 1.1rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-top: 0.5rem;
+}
+
+.login-btn:hover {
+  background-color: #14463a;
+}
+
+.color-bar {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 2rem;
+}
+
+.bar {
+  display: block;
+  width: 48px;
+  height: 8px;
+  border-radius: 4px;
+}
+
+.bar-red {
+  background-color: #9b1b30;
+}
+
+.bar-teal {
+  background-color: #1a5c4b;
+}
+
+.bar-gold-light {
+  background-color: #c8a951;
+}
+
+.bar-gold-dark {
+  background-color: #a68b3a;
+}
+
+.bar-gray {
+  background-color: #9ca3af;
+}
+
+.login-footer {
+  text-align: center;
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin-top: 1.25rem;
+}
+
+.login-footer strong {
+  color: #1a3c34;
+}

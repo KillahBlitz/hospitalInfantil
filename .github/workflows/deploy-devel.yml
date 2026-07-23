@@ -1,0 +1,81 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - devel
+      - main
+
+jobs:
+  preparar-deploy:
+    name: 🔍 Preparando deploy
+    runs-on: self-hosted
+    steps:
+      - name: ⚡ Validar conexión y entorno del Runner
+        run: |
+          echo "Verificando estado del runner y conectividad..."
+          echo "Directorio de trabajo actual: $PWD"
+          echo "Usuario ejecutando: $(whoami)"
+          docker --version
+          docker compose version
+          echo "¡El runner está listo y conectado correctamente!"
+
+  deploy-devel:
+    name: 🚀 Deploy To Devel
+    needs: preparar-deploy
+    runs-on: self-hosted
+    if: github.ref == 'refs/heads/devel'
+    steps:
+      - name: 📥 Checkout del código
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Preparar variables de entorno
+        run: |
+          cp ~/.env.frontend ./Frontend/.env
+          cp ~/.env.backend ./Backend/.env
+
+      - name: 🚀 Desplegar Backend (C#)
+        run: |
+          cd ./Backend
+          if docker ps -a --format '{{.Names}}' | grep -qx 'hospital-backend'; then
+            docker rm -f hospital-backend
+          fi
+          docker compose up -d --build --remove-orphans
+
+      - name: 🚀 Desplegar Frontend (React)
+        run: |
+          cd ./Frontend
+          docker rm -f hospital-frontend || true
+          docker compose up -d --build --remove-orphans
+
+  deploy-prod:
+    name: 🚀 Deploy To Prod
+    needs: preparar-deploy
+    runs-on: self-hosted
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: 📥 Checkout del código
+        uses: actions/checkout@v4
+
+      - name: 🌐 Crear red compartida de producción (si no existe)
+        run: |
+          docker network inspect hospital-net-prod >/dev/null 2>&1 || docker network create hospital-net-prod
+
+      - name: ⚙️ Preparar variables de entorno (producción)
+        run: |
+          cp ~/.env.frontprod ./Frontend/.env
+          cp ~/.env.backprod ./Backend/.env
+
+      - name: 🚀 Desplegar Backend (C#) - Producción
+        run: |
+          cd ./Backend
+          if docker ps -a --format '{{.Names}}' | grep -qx 'hospital-backend-prod'; then
+            docker rm -f hospital-backend-prod
+          fi
+          docker compose -p hospital-prod -f docker-compose.prod.yml up -d --build --remove-orphans
+
+      - name: 🚀 Desplegar Frontend (React) - Producción
+        run: |
+          cd ./Frontend
+          docker rm -f hospital-frontend-prod || true
+          docker compose -p hospital-prod -f docker-compose.prod.yml up -d --build --remove-orphans

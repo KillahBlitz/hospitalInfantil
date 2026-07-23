@@ -1,23 +1,34 @@
+using Backend.Data;
+using Backend.Handlers;
+using Backend.Models.Repositories;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+builder.Services.AddSwaggerGen(); 
 builder.Services.AddOpenApi();
+
+builder.Services.AddScoped<UserAccessRepository>();
+builder.Services.AddScoped<AuthHandler>();
+
+builder.Services.AddDbContext<UserAccessDbContext>(options =>
+{
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("HospitalInfantilDb")
+    );
+});
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
+//if (app.Environment.IsDevelopment())
+//{
+app.MapOpenApi();
 
-app.UseHttpsRedirection();
+app.UseSwagger();
+app.UseSwaggerUI();
+//}
 
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();

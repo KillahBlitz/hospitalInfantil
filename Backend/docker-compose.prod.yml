@@ -1,0 +1,20 @@
+services:
+  backend:
+    container_name: hospital-backend-prod
+    build:
+      context: .
+      dockerfile: Dockerfile
+    # En producción NO exponemos el backend directamente al host.
+    # El acceso pasa por el frontend (nginx) mediante /api en el puerto 5000.
+    expose:
+      - "5000"
+    env_file:
+      - .env
+    networks:
+      - hospital-net-prod
+    restart: unless-stopped
+
+networks:
+  hospital-net-prod:
+    name: hospital-net-prod
+    external: true
