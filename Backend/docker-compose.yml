@@ -1,11 +1,12 @@
 services:
   backend:
-    container_name: hospital-backend
+    image: hospital-backend:${BACKEND_IMAGE_TAG:-devel}
+    container_name: ${BACKEND_CONTAINER_NAME:-hospital-backend}
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8081:5000"
+      - "${BACKEND_HOST_PORT:-8081}:5000"
     env_file:
       - .env
     restart: unless-stopped
