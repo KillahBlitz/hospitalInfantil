@@ -1,11 +1,12 @@
 services:
   frontend:
-    container_name: hospital-frontend
+    image: hospital-frontend:${FRONTEND_IMAGE_TAG:-devel}
+    container_name: ${FRONTEND_CONTAINER_NAME:-hospital-frontend}
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "5173:80"
+      - "${FRONTEND_HOST_PORT:-5173}:80"
     volumes:
       - .:/app
       - /app/node_modules
