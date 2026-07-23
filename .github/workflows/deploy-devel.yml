@@ -62,24 +62,22 @@ jobs:
           cp ~/.env.frontprod ./Frontend/.env
           cp ~/.env.backprod ./Backend/.env
 
-      - name: 🚀 Desplegar Backend (C#) - Producción
+      - name: 🚀 Desplegar Stack de Producción (Backend + Frontend)
         env:
           BACKEND_CONTAINER_NAME: hospital-backend-prod
           BACKEND_HOST_PORT: "8082"
           BACKEND_IMAGE_TAG: prod
-        run: |
-          cd ./Backend
-          if docker ps -a --format '{{.Names}}' | grep -qx 'hospital-backend-prod'; then
-            docker rm -f hospital-backend-prod
-          fi
-          docker compose -p hospital-prod up -d --build --remove-orphans
-
-      - name: 🚀 Desplegar Frontend (React) - Producción
-        env:
           FRONTEND_CONTAINER_NAME: hospital-frontend-prod
           FRONTEND_HOST_PORT: "4173"
           FRONTEND_IMAGE_TAG: prod
         run: |
-          cd ./Frontend
-          docker rm -f hospital-frontend-prod || true
-          docker compose -p hospital-prod up -d --build --remove-orphans
+          for name in hospital-backend-prod hospital-frontend-prod; do
+            if docker ps -a --format '{{.Names}}' | grep -qx "$name"; then
+              docker rm -f "$name"
+            fi
+          done
+          docker compose \
+            -p hospital-prod \
+            -f Backend/docker-compose.yml \
+            -f Frontend/docker-compose.yml \
+            up -d --build --remove-orphans
