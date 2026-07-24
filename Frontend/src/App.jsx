@@ -1,4 +1,4 @@
-import Login from './templates/login/login'
+import Login from './pages/login/login'
 
 function App() {
   return <Login />
