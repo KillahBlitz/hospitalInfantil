@@ -54,7 +54,7 @@ function Login() {
             <a href="#" className="recuperar-link">Recuperar Contraseña</a>
           </div>
 
-          <button type="submit" className="login-btn">Entrar</button>
+          <button type="submit" className="login-btn">Acceder</button>
         </form>
 
         <div className="color-bar">
