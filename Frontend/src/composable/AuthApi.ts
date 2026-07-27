@@ -3,7 +3,7 @@ import { RegisterResponse } from "../interfaces/response/Auth";
 
 const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/Auth`;
 
-export async function registerUser(credentials: RegisterRequest) {
+export async function registerUser(credentials: RegisterRequest): Promise<RegisterResponse> {
     const response = await fetch(`${API_BASE_URL}/register`, {
         method: 'POST',
         headers: {
@@ -11,6 +11,7 @@ export async function registerUser(credentials: RegisterRequest) {
         },
         body: JSON.stringify(credentials),
     });
-    const result = response.json();
-    console.log('Response status:', result);
+
+    const result: RegisterResponse = await response.json();
+    return result;
 }

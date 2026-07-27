@@ -20,6 +20,9 @@ function Registry() {
   });
 
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [serverError, setServerError] = useState('');
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -96,7 +99,7 @@ function Registry() {
     return errores;
   };
 
-  const enviarFormulario = (datos) => {
+  const enviarFormulario = async (datos) => {
     const payload = {
       name: datos.nombres,
       lastName: datos.apellidoPaterno,
@@ -107,15 +110,33 @@ function Registry() {
       email: datos.correo,
       password: datos.contrasena,
     };
-    registerUser(payload);
+    return registerUser(payload);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setServerError('');
+
     const resultado = validarFormulario(formData);
     setErrors(resultado);
-    if (Object.keys(resultado).length === 0) {
-      enviarFormulario(formData);
+    if (Object.keys(resultado).length > 0) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const respuesta = await enviarFormulario(formData);
+      if (respuesta && respuesta.success) {
+        setShowSuccess(true);
+      } else {
+        setServerError(
+          respuesta?.message || 'No se pudo completar el registro. Intenta de nuevo.'
+        );
+      }
+    } catch {
+      setServerError('No se pudo conectar con el servidor. Intenta más tarde.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -127,7 +148,7 @@ function Registry() {
     <div className="login-page">
       <div className="login-card registry-card">
         <h1 className="login-title">Hospital Federico Gomez</h1>
-        <p className="login-subtitle">Registro de credenciales de acceso.</p>
+        <p className="login-subtitle">Registra tus.</p>
 
         <form onSubmit={handleSubmit} className="login-form" noValidate>
           <div className="form-group">
@@ -201,10 +222,13 @@ function Registry() {
                 id="fechaNacimiento"
                 name="fechaNacimiento"
                 type="date"
-                className="form-input"
+                className="form-input form-input-date"
                 max={new Date().toISOString().split('T')[0]}
                 value={formData.fechaNacimiento}
                 onChange={handleChange}
+                onKeyDown={(e) => e.preventDefault()}
+                onClick={(e) => e.currentTarget.showPicker?.()}
+                onFocus={(e) => e.currentTarget.showPicker?.()}
               />
               {errors.fechaNacimiento && <span className="form-error">{errors.fechaNacimiento}</span>}
             </div>
@@ -269,9 +293,27 @@ function Registry() {
             </div>
           </div>
 
+          {serverError && <p className="server-error">{serverError}</p>}
+
           <div className="form-actions">
-            <button type="button" className="cancel-btn" onClick={handleCancel}>Cancelar</button>
-            <button type="submit" className="login-btn">Registrarse</button>
+            <button
+              type="button"
+              className="cancel-btn"
+              onClick={handleCancel}
+              disabled={loading}
+            >
+              Cancelar
+            </button>
+            <button type="submit" className="login-btn" disabled={loading}>
+              {loading ? (
+                <>
+                  <span className="spinner" aria-hidden="true"></span>
+                  Registrando...
+                </>
+              ) : (
+                'Registrarse'
+              )}
+            </button>
           </div>
         </form>
 
@@ -283,6 +325,25 @@ function Registry() {
           <span className="bar bar-gray"></span>
         </div>
       </div>
+
+      {showSuccess && (
+        <div className="modal-overlay" role="dialog" aria-modal="true">
+          <div className="modal-card">
+            <div className="modal-icon" aria-hidden="true">&#10003;</div>
+            <h2 className="modal-title">Acceso solicitado correctamente</h2>
+            <p className="modal-text">
+              Ponte en contacto con un administrador para solicitar los permisos que necesitas.
+            </p>
+            <button
+              type="button"
+              className="login-btn"
+              onClick={() => navigate('/')}
+            >
+              Aceptar
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
