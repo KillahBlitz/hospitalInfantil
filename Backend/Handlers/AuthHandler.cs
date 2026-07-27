@@ -36,4 +36,15 @@ public class AuthHandler
             Accesos = accesos
         };
     }
+
+    public string Register(RegisterRequest request)
+    {
+        //var usuario = await _repository.GetUserAuth(request.usuario);
+
+        //if (usuario is not null)
+        //    return null;
+
+        //string passwordHash = BCrypt.Net.BCrypt.HashPassword(request.password);
+        return "Helloworld";
+    }
 }

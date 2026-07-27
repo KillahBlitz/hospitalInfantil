@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import './login.css';
 
 function Login() {
@@ -43,15 +44,7 @@ function Login() {
           </div>
 
           <div className="form-options">
-            <label className="checkbox-label">
-              <input
-                type="checkbox"
-                checked={recordar}
-                onChange={(e) => setRecordar(e.target.checked)}
-              />
-              <span>Recordar acceso</span>
-            </label>
-            <a href="#" className="recuperar-link">Recuperar Contraseña</a>
+            <Link to="/recuperar" className="recuperar-link">Recuperar Contraseña</Link>
           </div>
 
           <button type="submit" className="login-btn">Acceder</button>
@@ -66,7 +59,7 @@ function Login() {
         </div>
 
         <p className="login-footer">
-          Solicitar <strong>Credenciales de Acceso</strong>.
+          <Link to="/registrar" className="recuperar-link"> Registrar <strong>Credenciales de Acceso</strong>.</Link>
         </p>
       </div>
     </div>

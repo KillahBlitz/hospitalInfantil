@@ -18,6 +18,8 @@ public partial class UserAccessDbContext : DbContext
 
     public virtual DbSet<Permiso> Permisos { get; set; }
 
+    public virtual DbSet<SolicitudUsuario> SolicitudUsuarios { get; set; }
+
     public virtual DbSet<TipoUsuario> TipoUsuarios { get; set; }
 
     public virtual DbSet<Usuario> Usuarios { get; set; }
@@ -62,6 +64,37 @@ public partial class UserAccessDbContext : DbContext
             entity.Property(e => e.Descripcion).HasMaxLength(150);
             entity.Property(e => e.Nombre)
                 .HasMaxLength(15)
+                .IsUnicode(false);
+        });
+
+        modelBuilder.Entity<SolicitudUsuario>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToTable("SolicitudUsuarios", "acceso_usuario");
+
+            entity.HasIndex(e => e.Username, "UQ_Solicitud_User").IsUnique();
+
+            entity.HasIndex(e => e.Correo, "UQ_Solicitud_correo").IsUnique();
+
+            entity.Property(e => e.ApellidoMaterno)
+                .HasMaxLength(20)
+                .IsUnicode(false);
+            entity.Property(e => e.ApellidoPaterno)
+                .HasMaxLength(20)
+                .IsUnicode(false);
+            entity.Property(e => e.Correo).HasMaxLength(100);
+            entity.Property(e => e.FechaIngreso).HasDefaultValueSql("(getdate())");
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.Property(e => e.Nombre)
+                .HasMaxLength(30)
+                .IsUnicode(false);
+            entity.Property(e => e.PasswordHash).HasMaxLength(500);
+            entity.Property(e => e.Sexo)
+                .HasMaxLength(1)
+                .IsUnicode(false);
+            entity.Property(e => e.Username)
+                .HasMaxLength(10)
                 .IsUnicode(false);
         });
 

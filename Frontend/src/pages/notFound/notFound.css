@@ -1,0 +1,79 @@
+/* Página 404. Reutiliza .color-bar y .bar-* definidos en login.css. */
+
+.notfound-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem;
+  background: linear-gradient(
+    180deg,
+    var(--color-background) 0%,
+    var(--color-background-light) 100%
+  );
+}
+
+.notfound-card {
+  background: var(--color-white);
+  border-radius: var(--border-radius-lg);
+  padding: 3rem 3.5rem;
+  width: 100%;
+  max-width: 520px;
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+}
+
+.notfound-code {
+  display: block;
+  font-size: 6rem;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  color: var(--color-secondary);
+  margin-bottom: 1rem;
+}
+
+.notfound-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-black);
+  margin: 0 0 0.75rem;
+}
+
+.notfound-subtitle {
+  font-size: 0.95rem;
+  color: var(--color-text-light);
+  line-height: 1.55;
+  margin: 0 0 2rem;
+}
+
+.notfound-btn {
+  display: inline-block;
+  padding: 0.85rem 2rem;
+  background-color: var(--color-secondary);
+  color: var(--color-white);
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: var(--border-radius-md);
+  text-decoration: none;
+  transition: background-color 0.2s;
+}
+
+.notfound-btn:hover {
+  background-color: #1a4a3f;
+  text-decoration: none;
+}
+
+.notfound-card .color-bar {
+  margin-top: 2.5rem;
+}
+
+@media (max-width: 480px) {
+  .notfound-card {
+    padding: 2rem 1.5rem;
+  }
+
+  .notfound-code {
+    font-size: 4.5rem;
+  }
+}

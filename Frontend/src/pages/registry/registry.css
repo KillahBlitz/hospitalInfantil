@@ -1,0 +1,73 @@
+/* Estilos específicos de la página de registro.
+   Extiende los estilos base del login. */
+
+.registry-card {
+  max-width: 720px;
+  padding: 2.5rem 3rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.form-error {
+  color: var(--color-primary);
+  font-size: 0.8rem;
+  font-weight: 500;
+  margin-top: 0.15rem;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.form-actions .login-btn,
+.form-actions .cancel-btn {
+  flex: 1;
+  margin-top: 0;
+}
+
+.cancel-btn {
+  width: 100%;
+  padding: 1rem;
+  background-color: var(--color-white);
+  color: var(--color-secondary);
+  font-size: 1.1rem;
+  font-weight: 700;
+  border: 1px solid var(--color-secondary);
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.cancel-btn:hover {
+  background-color: var(--color-secondary);
+  color: var(--color-white);
+}
+
+select.form-input {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3e%3cpath fill='%23235B4E' d='M6 8L0 0h12z'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  padding-right: 2.5rem;
+}
+
+@media (max-width: 600px) {
+  .registry-card {
+    padding: 2rem 1.5rem;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .form-actions {
+    flex-direction: column-reverse;
+  }
+}
