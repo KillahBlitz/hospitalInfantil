@@ -25,13 +25,13 @@ public class AuthController : ControllerBase
         return Ok(usuario);
     }
 
-    // [HttpPost("register")]
-    // public async Task<IActionResult> Register([FromBody] RegisterRequest request)
-    // {
-    //     var usuario = await _authHandler.Register(request);
+    [HttpPost("register")]
+    public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+    {
+        var response = await _authHandler.Register(request);
 
-    //     if (usuario is null)
-    //         return BadRequest(new { message = "Error al registrar el usuario" });
-    //     return Ok(usuario);
-    // }
+        if (response is null)
+            return BadRequest(new { message = "Error al registrar el usuario" });
+        return Ok(response);
+    }
 }

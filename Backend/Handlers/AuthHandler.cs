@@ -37,14 +37,33 @@ public class AuthHandler
         };
     }
 
-    public string Register(RegisterRequest request)
+    public async Task<RegisterResponse?> Register(RegisterRequest request)
     {
-        //var usuario = await _repository.GetUserAuth(request.usuario);
-
-        //if (usuario is not null)
-        //    return null;
-
-        //string passwordHash = BCrypt.Net.BCrypt.HashPassword(request.password);
-        return "Helloworld";
+        RegisterResponse response = new RegisterResponse
+        {
+            Success = false,
+            Message = "El usuario ya existe o el correo ya está registrado"
+        };
+        var exist = await _repository.GetUserKeyAuth(request.user, request.email);
+        if (exist)
+        {
+            return response;
+        }
+        else if (request.birthDate == null || request.birthDate == "")
+        {
+            response.Message = "La fecha de nacimiento es requerida";
+            return response;
+        }
+        var passwordHash = BCrypt.Net.BCrypt.HashPassword(request.password);
+        var fechaNacimiento = DateOnly.ParseExact(request.birthDate, "yyyy-MM-dd");
+        var newUserSolicitado = await _repository.CreateUserSolicitado(request, passwordHash, fechaNacimiento);
+        if (newUserSolicitado == null)
+        {
+            response.Message = "Error al registrar el usuario";
+            return response;
+        }
+        response.Success = true;
+        response.Message = "Usuario registrado exitosamente";
+        return response;
     }
 }

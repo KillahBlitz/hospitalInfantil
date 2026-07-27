@@ -59,7 +59,7 @@ function Login() {
         </div>
 
         <p className="login-footer">
-          <Link to="/registrar" className="recuperar-link"> Registrar <strong>Credenciales de Acceso</strong>.</Link>
+          <Link to="/registrar" className="recuperar-link"> Registrar <strong>Acceso</strong></Link>
         </p>
       </div>
     </div>

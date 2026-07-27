@@ -69,9 +69,9 @@ public partial class UserAccessDbContext : DbContext
 
         modelBuilder.Entity<SolicitudUsuario>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("SolicitudUsuarios", "acceso_usuario");
+            entity.HasKey(e => e.Id);
+
+            entity.ToTable("SolicitudUsuarios", "acceso_usuario");
 
             entity.HasIndex(e => e.Username, "UQ_Solicitud_User").IsUnique();
 

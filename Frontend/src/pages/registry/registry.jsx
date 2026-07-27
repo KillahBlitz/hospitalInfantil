@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../login/login.css';
 import './registry.css';
+import { registerUser } from '../../composable/AuthApi.ts';
 
 function Registry() {
   const navigate = useNavigate();
@@ -95,18 +96,18 @@ function Registry() {
     return errores;
   };
 
-  const formatearFecha = (isoDate) => {
-    if (!isoDate) return '';
-    const [year, month, day] = isoDate.split('-');
-    return `${day}/${month}/${year}`;
-  };
-
   const enviarFormulario = (datos) => {
-    const payload = JSON.stringify({
-      ...datos,
-      fechaNacimiento: formatearFecha(datos.fechaNacimiento),
-    });
-    return payload;
+    const payload = {
+      name: datos.nombres,
+      lastName: datos.apellidoPaterno,
+      lastNameTwo: datos.apellidoMaterno,
+      sex: datos.sexo,
+      birthDate: datos.fechaNacimiento,
+      user: datos.usuario,
+      email: datos.correo,
+      password: datos.contrasena,
+    };
+    registerUser(payload);
   };
 
   const handleSubmit = (e) => {
