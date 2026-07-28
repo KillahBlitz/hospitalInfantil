@@ -1,0 +1,50 @@
+.area-template {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+}
+
+/* Menu de pestañas: barra completa de lado a lado */
+.area-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  background-color: var(--color-primary);
+  padding: 0 var(--spacing-2xl);
+  margin: calc(-1 * var(--spacing-2xl)) calc(-1 * var(--spacing-2xl)) 0;
+  border-bottom: 2px solid var(--color-border);
+}
+
+.area-tab {
+  padding: 10px var(--spacing-xl);
+  background: transparent;
+  color: var(--color-background);
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+}
+
+.area-tab:hover {
+  color: var(--color-white);
+}
+
+.area-tab.is-active {
+  color: var(--color-white);
+  border-bottom-color: var(--color-background);
+}
+
+.area-tabs-empty {
+  padding: 10px var(--spacing-2xl);
+  font-size: 0.9rem;
+  color: var(--color-background);
+  background-color: var(--color-primary);
+  margin: calc(-1 * var(--spacing-2xl)) calc(-1 * var(--spacing-2xl)) 0;
+}
+
+.area-module-title {
+  font-size: 1.25rem;
+  color: var(--color-secondary);
+  margin-bottom: var(--spacing-sm);
+}

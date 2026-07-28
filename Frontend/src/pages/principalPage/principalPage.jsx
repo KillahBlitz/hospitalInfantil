@@ -53,9 +53,15 @@ function ProcessModules(userData) {
 const ModulesCatalog = async (areas, areasCatalog) => {
     const areasId = [];
     const catalog = areasCatalog ?? {};
+    // Indexa el catalogo por nombre en minusculas para comparar sin importar mayusculas
+    const catalogByLower = {};
+    Object.keys(catalog).forEach((name) => {
+        catalogByLower[name.toLowerCase()] = catalog[name];
+    });
     areas.forEach((area) => {
-        if (area in catalog) {
-            areasId.push(catalog[area]);
+        const id = catalogByLower[area.toLowerCase()];
+        if (id !== undefined) {
+            areasId.push(id);
         }
     });
     const response = await GetModulesCatalog({ AreasId: areasId });
@@ -96,8 +102,8 @@ function PrincipalPage() {
 
             setCatalogs({
                 areas: areasResp?.areas ?? null,
-                access: accessResp?.access ?? null,
-                modules: modulos?.modules ?? null,
+                access: accessResp?.permisos ?? null,
+                modules: modulos?.modulos ?? null,
             });
             setLoading(false);
         };
