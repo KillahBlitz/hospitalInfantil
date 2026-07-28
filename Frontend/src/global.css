@@ -9,6 +9,7 @@
   --color-secondary: #235B4E;      /* Verde militar - color secundario */
   --color-background: #DDC9A3;     /* Beige - color de fondo */
   --color-auxiliary: #98989A;      /* Gris - color auxiliar */
+  --color-gold: #BC955C;           /* Dorado - acentos */
 
   /* Variantes de opacidad */
   --color-primary-light: rgba(159, 34, 65, 0.1);
