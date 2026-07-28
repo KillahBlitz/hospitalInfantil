@@ -73,7 +73,7 @@ public class AuthHandler
         var response = new AreasResponse();
         foreach (var area in areas)
         {
-            response.Areas.Add(area.Id, area.Nombre);
+            response.Areas.Add(area.Nombre, area.Id);
         }
         return response;
     }

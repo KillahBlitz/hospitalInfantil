@@ -2,7 +2,7 @@ namespace Backend.Models.Response.UserAccess;
 
 public class AreasResponse
 {
-    public Dictionary<int, string> Areas { get; set; } = new();
+    public Dictionary<string, int> Areas { get; set; } = new();
 }
 
 public class AccessResponse
