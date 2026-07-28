@@ -148,7 +148,7 @@ function Registry() {
     <div className="login-page">
       <div className="login-card registry-card">
         <h1 className="login-title">Hospital Federico Gomez</h1>
-        <p className="login-subtitle">Registra tus.</p>
+        <p className="login-subtitle">Registra tus Datos para solicitar acceso.</p>
 
         <form onSubmit={handleSubmit} className="login-form" noValidate>
           <div className="form-group">

@@ -57,7 +57,7 @@ public class UserAccessRepository
         return newUserSolicitado;
     }
 
-    public async Task<Dictionary<string, Dictionary<int, List<int>>>> GetAccess(int usuarioId)
+    public async Task<List<Dictionary<string, List<Dictionary<int, List<int>>>>>> GetAccess(int usuarioId)
     {
         var permisos = await _context.UsuarioModuloPermisos
             .Include(ump => ump.Modulo)
@@ -68,14 +68,33 @@ public class UserAccessRepository
 
         return permisos
             .GroupBy(p => p.Modulo.Area.Nombre)
-            .ToDictionary(
-                areaGroup => areaGroup.Key,
-                areaGroup => areaGroup
+            .Select(areaGroup => new Dictionary<string, List<Dictionary<int, List<int>>>>
+            {
+                [areaGroup.Key] = areaGroup
                     .GroupBy(p => p.Modulo.Id)
-                    .ToDictionary(
-                        moduloGroup => moduloGroup.Key,
-                        moduloGroup => moduloGroup.Select(p => p.Permiso.Id).ToList()
-                    )
-            );
+                    .Select(moduloGroup => new Dictionary<int, List<int>>
+                    {
+                        [moduloGroup.Key] = moduloGroup.Select(p => p.Permiso.Id).ToList()
+                    })
+                    .ToList()
+            })
+            .ToList();
+    }
+
+    public async Task<List<Area>> GetAreas()
+    {
+        var areas = await _context.Areas
+            .Where(a => a.Activo)
+            .ToListAsync();
+
+        return areas;
+    }
+
+    public async Task<List<Permiso>> GetPermisos()
+    {
+        var permisos = await _context.Permisos
+            .ToListAsync();
+
+        return permisos;
     }
 }

@@ -66,4 +66,24 @@ public class AuthHandler
         response.Message = "Usuario registrado exitosamente";
         return response;
     }
+
+    public async Task<AreasResponse?> GetAreas()
+    {
+        var areas = await _repository.GetAreas();
+        var response = new AreasResponse();
+        foreach (var area in areas)            response.Areas.Add(area.Id, area.Nombre);
+        }
+        return response;
+    }
+
+    public async Task<AccessResponse?> GetAccess()
+    {
+        var permisos = await _repository.GetPermisos();
+        var response = new AccessResponse();
+        foreach (var permiso in permisos)
+        {
+            response.Permisos.Add(permiso.Id, permiso.Nombre);
+        }
+        return response;
+    }
 }

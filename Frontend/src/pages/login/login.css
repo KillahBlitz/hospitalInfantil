@@ -162,3 +162,33 @@
 .login-footer strong {
   color: var(--color-secondary);
 }
+
+.login-message {
+  color: var(--color-primary);
+  font-size: 0.9rem;
+  font-weight: 400;
+  text-align: center;
+}
+
+.login-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  margin-right: 0.5rem;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: var(--color-white);
+  border-radius: 50%;
+  vertical-align: middle;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
