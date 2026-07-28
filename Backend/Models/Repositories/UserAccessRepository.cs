@@ -81,6 +81,15 @@ public class UserAccessRepository
             .ToList();
     }
 
+    public async Task<List<Area>> GetAreasById(List<int> areasId)
+    {
+        var areas = await _context.Areas
+            .Where(a => areasId.Contains(a.Id) && a.Activo)
+            .ToListAsync();
+
+        return areas;
+    }
+
     public async Task<List<Area>> GetAreas()
     {
         var areas = await _context.Areas
@@ -96,5 +105,13 @@ public class UserAccessRepository
             .ToListAsync();
 
         return permisos;
+    }
+
+    public async Task<List<Modulo>> GetModulos(List<int> areasId)
+    {
+        var modulos = await _context.Modulos
+            .Where(m => areasId.Contains(m.AreaId) && m.Activo)
+            .ToListAsync();
+        return modulos;
     }
 }

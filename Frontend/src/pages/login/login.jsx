@@ -22,6 +22,10 @@ function Login() {
         if (UserAccess?.message) {
           setMessage(UserAccess.message);
         }
+        else {
+          localStorage.setItem('user', JSON.stringify(UserAccess));
+          window.location.href = '/menu';
+        }
       } catch {
         setMessage('No se pudo conectar con el servidor. Intenta más tarde.');
       } finally {

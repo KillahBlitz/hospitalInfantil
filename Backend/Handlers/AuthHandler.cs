@@ -88,4 +88,15 @@ public class AuthHandler
         }
         return response;
     }
+
+    public async Task<ModulesResponse?> GetModules(ModuleRequest request)
+    {
+        var modulos = await _repository.GetModulos(request.areasId);        
+        var response = new ModulesResponse();
+        foreach (var modulo in modulos)
+        {
+            response.Modulos.Add(modulo.Id, modulo.Nombre);
+        }
+        return response;
+    }
 }

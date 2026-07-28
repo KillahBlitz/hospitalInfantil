@@ -45,13 +45,23 @@ public class AuthController : ControllerBase
         return Ok(response);
     }
 
-        [HttpGet("access")]
+    [HttpGet("access")]
     public async Task<IActionResult> Access()
     {
         var response = await _authHandler.GetAccess();
 
         if (response is null)
             return BadRequest(new { message = "Error al obtener permisos" });
+        return Ok(response);
+    }
+
+    [HttpPost("modules")]
+    public async Task<IActionResult> Modules([FromBody] ModuleRequest request)
+    {
+        var response = await _authHandler.GetModules(request);
+
+        if (response is null)
+            return BadRequest(new { message = "Error al obtener modulos" });
         return Ok(response);
     }
 }

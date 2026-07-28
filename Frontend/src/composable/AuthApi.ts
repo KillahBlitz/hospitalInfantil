@@ -1,5 +1,5 @@
-import { RegisterRequest, LoginRequest } from '../interfaces/request/Auth';
-import { RegisterResponse, LoginResponse, ModulesResponse, AccessResponse } from "../interfaces/response/Auth";
+import { RegisterRequest, LoginRequest, ModulesRequest } from '../interfaces/request/Auth';
+import { RegisterResponse, LoginResponse, AccessResponse, AreaResponse, ModulesResponse } from "../interfaces/response/Auth";
 
 const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/Auth`;
 
@@ -29,8 +29,20 @@ export async function loginUser(credentials: LoginRequest): Promise<LoginRespons
     return result;
 }
 
-export async function GetModulesCatalog(): Promise<ModulesResponse> {
-    const response = await fetch(`${API_BASE_URL}/GetModulesCatalog`, {
+export async function GetModulesCatalog(params: ModulesRequest): Promise<ModulesResponse> {
+    const response = await fetch(`${API_BASE_URL}/modules`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(params),
+    });
+    const result = await response.json();
+    return result;
+}
+
+export async function GetAccessCatalog(): Promise<AccessResponse> {
+    const response = await fetch(`${API_BASE_URL}/GetAccessCatalog`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -41,8 +53,20 @@ export async function GetModulesCatalog(): Promise<ModulesResponse> {
     return result;
 }
 
-export async function GetAccessCatalog(): Promise<AccessResponse> {
-    const response = await fetch(`${API_BASE_URL}/GetAccessCatalog`, {
+export async function GetAccess(): Promise<AccessResponse> {
+    const response = await fetch(`${API_BASE_URL}/access`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
+
+    const result = await response.json();
+    return result;
+}
+
+export async function GetAreas(): Promise<AreaResponse> {
+        const response = await fetch(`${API_BASE_URL}/areas`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',

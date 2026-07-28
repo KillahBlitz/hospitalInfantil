@@ -1,3 +1,4 @@
+export type AreasListId = number[];
 export interface LoginRequest {
   user: string;
   password: string;
@@ -12,4 +13,8 @@ export interface RegisterRequest {
   lastName: string;
   lastNameTwo: string;
   sex: string;
+}
+
+export interface ModulesRequest{
+  AreasId: AreasListId;
 }

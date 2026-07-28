@@ -1,7 +1,9 @@
 export type Modulo = Record<string, number[]>;
 export type Acceso = Record<string, Modulo[]>;
-export type ModuleCatalog = Record<number, string>;
+export type AreaCatalog = Record<string, number>;
 export type AccessCatalog = Record<number, string>;
+export type ModulesCatalog = Record<number, string>;
+
 export interface LoginResponse {
     id: number;
     nombre: string;
@@ -17,10 +19,14 @@ export interface RegisterResponse {
     message: string;
 }
 
-export interface ModulesResponse {
-    modules: ModuleCatalog;
+export interface AreaResponse {
+    areas: AreaCatalog;
 }
 
 export interface AccessResponse {
     access: AccessCatalog;
+}
+
+export interface ModulesResponse {
+    modules: ModulesCatalog;
 }
