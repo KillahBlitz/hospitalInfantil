@@ -12,6 +12,12 @@ function Login() {
   const handleSubmit = async (e) => {
       e.preventDefault();
       setMessage('');
+
+      if (!usuario.trim() || !contrasena.trim()) {
+        setMessage('Ingresa tu usuario y contraseña.');
+        return;
+      }
+
       const request = {
         user: usuario,
         password: contrasena
@@ -19,14 +25,16 @@ function Login() {
       setLoading(true);
       try {
         const UserAccess = await loginUser(request);
-        if (UserAccess?.message) {
-          setMessage(UserAccess.message);
+        if (UserAccess?.message || !UserAccess?.id) {
+          localStorage.removeItem('user');
+          setMessage(UserAccess?.message ?? 'Credenciales inválidas.');
         }
         else {
           localStorage.setItem('user', JSON.stringify(UserAccess));
           window.location.href = '/menu';
         }
       } catch {
+        localStorage.removeItem('user');
         setMessage('No se pudo conectar con el servidor. Intenta más tarde.');
       } finally {
         setLoading(false);
@@ -49,6 +57,7 @@ function Login() {
               placeholder="Ingresa tu Usuario"
               value={usuario}
               onChange={(e) => setUsuario(e.target.value)}
+              required
             />
           </div>
 
@@ -61,6 +70,7 @@ function Login() {
               placeholder="Ingresa tu contrasena"
               value={contrasena}
               onChange={(e) => setContrasena(e.target.value)}
+              required
             />
           </div>
 
