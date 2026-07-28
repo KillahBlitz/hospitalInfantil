@@ -71,7 +71,9 @@ public class AuthHandler
     {
         var areas = await _repository.GetAreas();
         var response = new AreasResponse();
-        foreach (var area in areas)            response.Areas.Add(area.Id, area.Nombre);
+        foreach (var area in areas)
+        {
+            response.Areas.Add(area.Id, area.Nombre);
         }
         return response;
     }
