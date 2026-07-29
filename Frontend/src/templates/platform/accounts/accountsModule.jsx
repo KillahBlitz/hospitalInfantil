@@ -15,7 +15,6 @@ function AccountsModule({ module }) {
         const loadUsers = async () => {
             try {
                 const response = await getUsers();
-                // UsersResponse es un Record<string, Users[]>; aplanamos los valores.
                 const list = Object.values(response ?? {}).flat();
                 if (active) setUsers(list);
             } catch {
@@ -48,7 +47,6 @@ function AccountsModule({ module }) {
         <div className="accounts-module">
             <h2 className="area-module-title">{module?.name ?? 'Configuracion de cuentas'}</h2>
 
-            {/* Filtros de busqueda */}
             <div className="accounts-filters">
                 <div className="accounts-filter">
                     <label htmlFor="account-name" className="accounts-filter-label">
@@ -78,7 +76,6 @@ function AccountsModule({ module }) {
                 </div>
             </div>
 
-            {/* Listado de registros */}
             {loading ? (
                 <p className="content-placeholder">Cargando usuarios...</p>
             ) : error ? (
