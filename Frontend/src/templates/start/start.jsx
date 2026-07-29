@@ -1,6 +1,5 @@
 import './start.css';
 
-// Tarjetas que explican el proposito de la plataforma.
 const PURPOSE_CARDS = [
     {
         title: 'Centraliza la informacion',
@@ -19,7 +18,6 @@ const PURPOSE_CARDS = [
     },
 ];
 
-// Resumen de las paginas y recursos institucionales del HIMFG.
 const INSTITUTIONAL_PAGES = [
     {
         title: 'Portal principal del HIMFG',
@@ -86,7 +84,6 @@ const INSTITUTIONAL_PAGES = [
 function Start({ user }) {
     return (
         <div className="template-start">
-            {/* Hero introductorio */}
             <section className="start-hero">
                 <p className="start-eyebrow">Plataforma HIMFG</p>
                 <h1 className="start-title">
@@ -100,7 +97,6 @@ function Start({ user }) {
                 </p>
             </section>
 
-            {/* Cards de proposito */}
             <section className="start-section">
                 <div className="start-cards">
                     {PURPOSE_CARDS.map((card) => (
@@ -112,7 +108,6 @@ function Start({ user }) {
                 </div>
             </section>
 
-            {/* Resumen institucional */}
             <section className="start-section">
                 <h2 className="start-section-title">Recursos institucionales</h2>
                 <p className="start-section-subtitle">

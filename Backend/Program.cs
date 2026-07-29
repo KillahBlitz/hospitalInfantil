@@ -31,6 +31,7 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddScoped<UserAccessRepository>();
 builder.Services.AddScoped<AuthHandler>();
+builder.Services.AddScoped<PlatformHandler>();
 
 builder.Services.AddDbContext<UserAccessDbContext>(options =>
 {

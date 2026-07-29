@@ -53,7 +53,6 @@ function ProcessModules(userData) {
 const ModulesCatalog = async (areas, areasCatalog) => {
     const areasId = [];
     const catalog = areasCatalog ?? {};
-    // Indexa el catalogo por nombre en minusculas para comparar sin importar mayusculas
     const catalogByLower = {};
     Object.keys(catalog).forEach((name) => {
         catalogByLower[name.toLowerCase()] = catalog[name];

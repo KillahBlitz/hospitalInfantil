@@ -114,4 +114,11 @@ public class UserAccessRepository
             .ToListAsync();
         return modulos;
     }
+
+    public async Task<List<SolicitudUsuario>> GetAllUsersRequest()
+    {
+        var solicitudes = await _context.SolicitudUsuarios
+            .ToListAsync();
+        return solicitudes;
+    }
 }

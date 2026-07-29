@@ -1,0 +1,78 @@
+.accounts-module {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+/* Filtros */
+.accounts-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-lg);
+}
+
+.accounts-filter {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  flex: 1;
+  min-width: 220px;
+}
+
+.accounts-filter-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--color-text-light);
+}
+
+.accounts-input {
+  padding: 0.65rem var(--spacing-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  background-color: var(--color-white);
+  color: var(--color-text);
+  font-size: 0.95rem;
+}
+
+.accounts-input:focus {
+  border-color: var(--color-secondary);
+}
+
+/* Listado */
+.accounts-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.accounts-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--spacing-md);
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--color-secondary);
+  border-radius: var(--border-radius-md);
+  background-color: var(--color-white);
+}
+
+.accounts-item-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-black);
+}
+
+.accounts-item-sub {
+  font-size: 0.85rem;
+  color: var(--color-text-light);
+}
+
+.accounts-error {
+  color: var(--color-primary);
+  font-weight: 600;
+}
