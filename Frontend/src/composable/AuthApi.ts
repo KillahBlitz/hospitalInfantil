@@ -25,7 +25,7 @@ export async function loginUser(credentials: LoginRequest): Promise<LoginRespons
         body: JSON.stringify(credentials),
     });
 
-    const result = await response.json();
+    const result: LoginResponse = await response.json();
     return result;
 }
 

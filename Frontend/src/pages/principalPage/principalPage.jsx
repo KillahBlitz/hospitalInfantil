@@ -151,14 +151,14 @@ function PrincipalPage() {
 
             <main className="principal-content">
                 {loading ? (
-                    <p className="content-placeholder">Cargando catalogos...</p>
+                    <p className="content-placeholder">Cargando...</p>
                 ) : ActiveTemplate ? (
                     <ActiveTemplate user={user} catalogs={catalogs} />
                 ) : (
                     <>
                         <h1 className="content-title">{active?.label}</h1>
                         <p className="content-placeholder">
-                            Este modulo aun no tiene un template asignado.
+                            Error al cargar el módulo. Por favor, contacte al administrador del sistema.
                         </p>
                     </>
                 )}

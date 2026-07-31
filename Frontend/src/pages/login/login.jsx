@@ -35,7 +35,7 @@ function Login() {
         }
       } catch {
         localStorage.removeItem('user');
-        setMessage('No se pudo conectar con el servidor. Intenta más tarde.');
+        setMessage('No se pudo conectar. Intenta más tarde.');
       } finally {
         setLoading(false);
       }
