@@ -121,4 +121,18 @@ public class UserAccessRepository
             .ToListAsync();
         return solicitudes;
     }
+
+    public async Task<Usuario?> GetUserByEmail(string correo)
+    {
+        return await _context.Usuarios
+            .FirstOrDefaultAsync(u => u.Correo == correo);
+    }
+
+    public async Task<bool> UpdatePassword(Usuario usuario, string passwordHash)
+    {
+        usuario.PasswordHash = passwordHash;
+        _context.Usuarios.Update(usuario);
+        var affected = await _context.SaveChangesAsync();
+        return affected > 0;
+    }
 }
