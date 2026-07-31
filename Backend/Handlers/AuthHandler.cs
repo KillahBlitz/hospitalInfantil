@@ -67,6 +67,18 @@ public class AuthHandler
         return response;
     }
 
+    public async Task<bool> ChangePassword(ChangePasswordRequest request)
+    {
+        var usuario = await _repository.GetUserByEmail(request.email);
+
+        if (usuario is null)
+            return false;
+
+        var passwordHash = BCrypt.Net.BCrypt.HashPassword(request.password);
+
+        return await _repository.UpdatePassword(usuario, passwordHash);
+    }
+
     public async Task<AreasResponse?> GetAreas()
     {
         var areas = await _repository.GetAreas();

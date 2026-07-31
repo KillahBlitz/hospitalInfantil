@@ -35,6 +35,14 @@ public class AuthController : ControllerBase
         return Ok(response);
     }
 
+    [HttpPost("changePassword")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+    {
+        var result = await _authHandler.ChangePassword(request);
+
+        return Ok(result);
+    }
+
     [HttpGet("areas")]
     public async Task<IActionResult> Areas()
     {
