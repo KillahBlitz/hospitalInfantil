@@ -14,6 +14,8 @@ function PasswordRecouperation() {
   });
 
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [modal, setModal] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -44,7 +46,8 @@ function PasswordRecouperation() {
     return errores;
   };
 
-  const enviarFormulario = async (datos) => {
+  const enviarFormulario = async () => {
+    setLoading(true);
     try {
       const respuesta = await fetch(`${import.meta.env.VITE_API_BASE_URL}/Auth/changePassword`, {
         method: 'POST',
@@ -60,14 +63,27 @@ function PasswordRecouperation() {
       const resultado = await respuesta.json();
 
       if (resultado === true) {
-        alert('Contraseña actualizada con éxito. Por favor, inicia sesión con tu nueva contraseña.');
-        navigate('/');
+        setModal({
+          type: 'success',
+          message: 'contraseña actualizada',
+          onAccept: () => navigate('/'),
+        });
       } else {
-        alert('El correo ingresado no está registrado. Por favor, verifica tu correo o regístrate.');
+        setModal({
+          type: 'error',
+          message: 'El correo no está registrado, por favor contacta al soporte de la plataforma.',
+          onAccept: () => setModal(null),
+        });
       }
     } catch (error) {
       console.error('Error al conectar con el servidor:', error);
-      alert('No se pudo conectar con el servidor. Por favor, intenta nuevamente más tarde.');
+      setModal({
+        type: 'error',
+        message: 'No se pudo conectar con el servidor. Por favor, intenta nuevamente más tarde.',
+        onAccept: () => setModal(null),
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -76,7 +92,7 @@ function PasswordRecouperation() {
     const resultado = validarFormulario(formData);
     setErrors(resultado);
     if (Object.keys(resultado).length === 0) {
-      enviarFormulario(formData);
+      enviarFormulario();
     }
   };
 
@@ -101,6 +117,7 @@ function PasswordRecouperation() {
               placeholder="usuario@dominio.com"
               value={formData.correo}
               onChange={handleChange}
+              disabled={loading}
             />
             {errors.correo && <span className="form-error">{errors.correo}</span>}
           </div>
@@ -115,6 +132,7 @@ function PasswordRecouperation() {
               placeholder="Ingresa tu nueva contraseña"
               value={formData.contrasena}
               onChange={handleChange}
+              disabled={loading}
             />
             {errors.contrasena && <span className="form-error">{errors.contrasena}</span>}
           </div>
@@ -129,13 +147,25 @@ function PasswordRecouperation() {
               placeholder="Repite tu nueva contraseña"
               value={formData.confirmacion}
               onChange={handleChange}
+              disabled={loading}
             />
             {errors.confirmacion && <span className="form-error">{errors.confirmacion}</span>}
           </div>
 
           <div className="form-actions">
-            <button type="button" className="cancel-btn" onClick={handleCancel}>Cancelar</button>
-            <button type="submit" className="login-btn">Actualizar</button>
+            <button type="button" className="cancel-btn" onClick={handleCancel} disabled={loading}>
+              Cancelar
+            </button>
+            <button type="submit" className="login-btn" disabled={loading}>
+              {loading ? (
+                <>
+                  <span className="spinner" aria-hidden="true"></span>
+                  Actualizando...
+                </>
+              ) : (
+                'Actualizar'
+              )}
+            </button>
           </div>
         </form>
 
@@ -147,9 +177,50 @@ function PasswordRecouperation() {
           <span className="bar bar-gray"></span>
         </div>
       </div>
+
+      {modal && (
+        <div className="modal-overlay" role="dialog" aria-modal="true">
+          <div className="modal-card">
+            <h2 className="modal-title">Hospital Federico Gomez</h2>
+            <div className="modal-icon-wrapper">
+              {modal.type === 'success' ? (
+                <svg className="modal-svg-icon modal-svg-success" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="50" cy="50" r="42" stroke="var(--color-secondary)" strokeWidth="6" />
+                  <path d="M30 52 L43 65 L70 36" stroke="var(--color-secondary)" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              ) : (
+                <svg className="modal-svg-icon modal-svg-error" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="50" cy="50" r="42" stroke="var(--color-primary)" strokeWidth="6" />
+                  <path d="M34 34 L66 66 M66 34 L34 66" stroke="var(--color-primary)" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              )}
+            </div>
+            <p className="modal-message">{modal.message}</p>
+            <button
+              type="button"
+              className="login-btn"
+              onClick={() => {
+                if (modal.onAccept) {
+                  modal.onAccept();
+                } else {
+                  setModal(null);
+                }
+              }}
+            >
+              Aceptar
+            </button>
+            <div className="color-bar">
+              <span className="bar bar-red"></span>
+              <span className="bar bar-teal"></span>
+              <span className="bar bar-gold-light"></span>
+              <span className="bar bar-gold-dark"></span>
+              <span className="bar bar-gray"></span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 export default PasswordRecouperation;
-
