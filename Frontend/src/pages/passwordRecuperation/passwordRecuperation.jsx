@@ -46,25 +46,23 @@ function PasswordRecouperation() {
 
   const enviarFormulario = async (datos) => {
     try {
-      const respuesta= await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/changePassword`, { 
+      const respuesta = await fetch(`${import.meta.env.VITE_API_BASE_URL}/Auth/changePassword`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          correo: formData.correo,
-          nuevaContrasena: formData.contrasena
+          email: formData.correo,
+          password: formData.contrasena,
         }),
       });
-      //El servidor devueleve un booleano (tru o false)
+
       const resultado = await respuesta.json();
-      //Si devuelve true:Muestra pantalla de éxito con botón para volver al incio de de sesión
-      if(resultado === true){
+
+      if (resultado === true) {
         alert('Contraseña actualizada con éxito. Por favor, inicia sesión con tu nueva contraseña.');
         navigate('/');
-      }
-      //Si devuelve false:Muestra que el correo no está registrado
-      else{
+      } else {
         alert('El correo ingresado no está registrado. Por favor, verifica tu correo o regístrate.');
       }
     } catch (error) {
