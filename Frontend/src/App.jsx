@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Login from './pages/login/login'
 import Registry from './pages/registry/registry'
-import PasswordRecouperation from './pages/passwordRecuperation/passwordRecouperation'
+import PasswordRecuperation from './pages/passwordRecuperation/passwordRecuperation'
 import NotFound from './pages/notFound/notFound'
 import PrincipalPage from './pages/principalPage/principalPage'
 import { PublicRoute, PrivateRoute } from './components/RouteGuards'
@@ -12,7 +12,7 @@ function App() {
       <Routes>
         <Route path="/" element={<PublicRoute><Login /></PublicRoute>} />
         <Route path="/registrar" element={<PublicRoute><Registry /></PublicRoute>} />
-        <Route path="/recuperar" element={<PublicRoute><PasswordRecouperation /></PublicRoute>} />
+        <Route path="/recuperar" element={<PublicRoute><PasswordRecuperation /></PublicRoute>} />
         <Route path="/menu" element={<PrivateRoute><PrincipalPage /></PrivateRoute>} />
         <Route path="*" element={<NotFound />} />
       </Routes>

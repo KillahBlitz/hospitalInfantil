@@ -44,10 +44,31 @@ function PasswordRecouperation() {
     return errores;
   };
 
-  const enviarFormulario = (datos) => {
-    const payload = JSON.stringify(datos);
-    console.log('Recuperación válida, JSON serializado:', payload);
-    return payload;
+  const enviarFormulario = async (datos) => {
+    try {
+      const respuesta = await fetch(`${import.meta.env.VITE_API_BASE_URL}/Auth/changePassword`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.correo,
+          password: formData.contrasena,
+        }),
+      });
+
+      const resultado = await respuesta.json();
+
+      if (resultado === true) {
+        alert('Contraseña actualizada con éxito. Por favor, inicia sesión con tu nueva contraseña.');
+        navigate('/');
+      } else {
+        alert('El correo ingresado no está registrado. Por favor, verifica tu correo o regístrate.');
+      }
+    } catch (error) {
+      console.error('Error al conectar con el servidor:', error);
+      alert('No se pudo conectar con el servidor. Por favor, intenta nuevamente más tarde.');
+    }
   };
 
   const handleSubmit = (e) => {
@@ -131,3 +152,4 @@ function PasswordRecouperation() {
 }
 
 export default PasswordRecouperation;
+
