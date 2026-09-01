@@ -1,5 +1,5 @@
 using Backend.Models.Repositories;
-//using Backend.Models.Request.Platform;
+using Backend.Models.Request.Platform;
 using Backend.Models.Response.Platform;
 
 namespace Backend.Handlers;
@@ -36,5 +36,29 @@ public class PlatformHandler
         {
             Solicitudes = solicitudes
         };
+    }
+
+    public async Task<RequestActionResponse> ApproveRequest(ApproveRequestRequest request)
+    {
+        var solicitud = await _repository.GetRequestByIdAsync(request.RequestId);
+
+        if (solicitud is null)
+            return new RequestActionResponse { Success = false, Message = "La solicitud no existe o ya fue procesada." };
+
+        await _repository.ApproveRequestAsync(solicitud, request.TypeId, request.Access);
+
+        return new RequestActionResponse { Success = true, Message = "Solicitud aprobada. El usuario ya puede iniciar sesión." };
+    }
+
+    public async Task<RequestActionResponse> RejectRequest(RejectRequestRequest request)
+    {
+        var solicitud = await _repository.GetRequestByIdAsync(request.RequestId);
+
+        if (solicitud is null)
+            return new RequestActionResponse { Success = false, Message = "La solicitud no existe o ya fue procesada." };
+
+        await _repository.RejectRequestAsync(solicitud);
+
+        return new RequestActionResponse { Success = true, Message = "Solicitud rechazada." };
     }
 }
