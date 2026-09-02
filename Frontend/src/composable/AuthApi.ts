@@ -1,4 +1,4 @@
-import { RegisterRequest, LoginRequest, ModulesRequest } from '../interfaces/request/Auth';
+import { RegisterRequest, LoginRequest, ModulesRequest,ChangePasswordRequest } from '../interfaces/request/Auth';
 import { RegisterResponse, LoginResponse, AccessResponse, AreaResponse, ModulesResponse } from "../interfaces/response/Auth";
 
 const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/Auth`;
@@ -74,5 +74,18 @@ export async function GetAreas(): Promise<AreaResponse> {
     });
 
     const result = await response.json();
+    return result;
+}
+
+export async function changePassword(credentials: ChangePasswordRequest): Promise<boolean> {
+    const response = await fetch(`${API_BASE_URL}/changePassword`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(credentials),
+    });
+
+    const result: boolean = await response.json();
     return result;
 }

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { changePassword } from '../../composable/AuthApi';
 import '../login/login.css';
 import '../registry/registry.css';
 import './passwordRecouperation.css';
@@ -49,18 +50,10 @@ function PasswordRecouperation() {
   const enviarFormulario = async () => {
     setLoading(true);
     try {
-      const respuesta = await fetch(`${import.meta.env.VITE_API_BASE_URL}/Auth/changePassword`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: formData.correo,
-          password: formData.contrasena,
-        }),
+      const resultado = await changePassword({
+        email: formData.correo,
+        password: formData.contrasena,
       });
-
-      const resultado = await respuesta.json();
 
       if (resultado === true) {
         setModal({

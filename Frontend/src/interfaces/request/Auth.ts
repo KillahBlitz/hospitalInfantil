@@ -18,3 +18,8 @@ export interface RegisterRequest {
 export interface ModulesRequest{
   AreasId: AreasListId;
 }
+
+export interface ChangePasswordRequest {
+  email: string;
+  password: string;
+}
