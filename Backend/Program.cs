@@ -3,6 +3,9 @@ using Backend.Handlers;
 using Backend.Models.Repositories;
 using Microsoft.EntityFrameworkCore;
 
+using DotNetEnv;
+Env.Load();
+
 var builder = WebApplication.CreateBuilder(args);
 
 const string FrontendCorsPolicy = "FrontendCorsPolicy";

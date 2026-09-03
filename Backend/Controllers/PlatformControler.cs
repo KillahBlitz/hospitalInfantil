@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Backend.Handlers;
-//using Backend.Models.Request.Platform;
+using Backend.Models.Request.Platform;
 
 namespace Backend.Controllers;
 
@@ -23,5 +23,27 @@ public class PlatformController : ControllerBase
         if (response is null)
             return Unauthorized(new { message = "Credenciales inválidas" });
         return Ok(response);
+    }
+
+    [HttpPost("ApproveRequest")]
+    public async Task<IActionResult> ApproveRequest([FromBody] ApproveRequestRequest request)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var response = await _platformHandler.ApproveRequest(request);
+
+        return response.Success ? Ok(response) : BadRequest(response);
+    }
+
+    [HttpPost("RejectRequest")]
+    public async Task<IActionResult> RejectRequest([FromBody] RejectRequestRequest request)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var response = await _platformHandler.RejectRequest(request);
+
+        return response.Success ? Ok(response) : BadRequest(response);
     }
 }

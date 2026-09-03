@@ -1,5 +1,6 @@
 using System.Globalization;
 using Backend.Data;
+using Backend.Models.Request.Platform;
 using Backend.Models.Request.UserAccess;
 using Backend.Models.Schemas.UserAccess;
 using Microsoft.EntityFrameworkCore;
@@ -134,5 +135,56 @@ public class UserAccessRepository
         _context.Usuarios.Update(usuario);
         var affected = await _context.SaveChangesAsync();
         return affected > 0;
+    }
+
+    public async Task<SolicitudUsuario?> GetRequestByIdAsync(int requestId)
+    {
+        return await _context.SolicitudUsuarios
+            .FirstOrDefaultAsync(s => s.Id == requestId);
+    }
+
+    public async Task<Usuario> ApproveRequestAsync(SolicitudUsuario request, short typeId, List<ModuleAccess> access)
+    {
+        var usuario = new Usuario
+        {
+            TipoId = typeId,
+            Nombre = request.Nombre,
+            ApellidoPaterno = request.ApellidoPaterno,
+            ApellidoMaterno = request.ApellidoMaterno,
+            FechaNacimiento = request.FechaNacimiento,
+            Sexo = request.Sexo,
+            FechaIngreso = DateOnly.FromDateTime(DateTime.Now),
+            Alias = request.Username,
+            Correo = request.Correo,
+            PasswordHash = request.PasswordHash,
+            Activo = true
+        };
+
+        _context.Usuarios.Add(usuario);
+        await _context.SaveChangesAsync();
+
+        foreach (var moduleAccess in access)
+        {
+            foreach (var permissionId in moduleAccess.PermissionIds)
+            {
+                _context.UsuarioModuloPermisos.Add(new UsuarioModuloPermiso
+                {
+                    UsuarioId = usuario.Id,
+                    ModuloId = moduleAccess.ModuleId,
+                    PermisoId = permissionId
+                });
+            }
+        }
+
+        _context.SolicitudUsuarios.Remove(request);
+        await _context.SaveChangesAsync();
+
+        return usuario;
+    }
+
+    public async Task RejectRequestAsync(SolicitudUsuario request)
+    {
+        _context.SolicitudUsuarios.Remove(request);
+        await _context.SaveChangesAsync();
     }
 }
