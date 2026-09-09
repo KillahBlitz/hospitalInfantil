@@ -52,13 +52,119 @@
 
 .accounts-item {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  align-items: center;
+  gap: var(--spacing-md);
   padding: var(--spacing-md);
   border: 1px solid var(--color-border);
   border-left: 4px solid var(--color-secondary);
   border-radius: var(--border-radius-md);
   background-color: var(--color-white);
+}
+
+.accounts-item-info {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  gap: 2px;
+  overflow-wrap: anywhere;
+}
+
+.accounts-item-actions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: var(--spacing-sm);
+  margin-left: auto;
+}
+
+.accounts-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  min-height: 36px;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid transparent;
+  border-radius: var(--border-radius-sm);
+  font-size: 0.9rem;
+  font-weight: 500;
+  box-shadow: var(--shadow-sm);
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.accounts-action svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.accounts-action:focus-visible {
+  outline: 2px solid var(--color-secondary);
+  outline-offset: 3px;
+}
+
+.accounts-action-activate {
+  background-color: #388e3c;
+  color: var(--color-white);
+}
+
+.accounts-action-activate:hover {
+  background-color: #2e7d32;
+}
+
+.accounts-action-chat {
+  min-width: 44px;
+  background-color: var(--color-white);
+  border-color: var(--color-border);
+  color: var(--color-secondary);
+}
+
+.accounts-action-chat:hover {
+  background-color: var(--color-secondary-light);
+}
+
+.accounts-action-deactivate {
+  background-color: #b91c1c;
+  color: var(--color-white);
+}
+
+.accounts-action-deactivate:hover:not(:disabled) {
+  background-color: #991b1b;
+}
+
+.accounts-action:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.accounts-view-toggle {
+  align-self: flex-end;
+  min-height: 42px;
+  background-color: var(--color-primary);
+  color: var(--color-white);
+}
+
+.accounts-view-toggle:hover {
+  background-color: #831b36;
+}
+
+.accounts-view-toggle.is-registered {
+  background-color: var(--color-secondary);
+}
+
+.accounts-view-toggle.is-registered:hover {
+  background-color: #1a4a3f;
+}
+
+@media (max-width: 600px) {
+  .accounts-item {
+    flex-wrap: wrap;
+  }
+
+  .accounts-item-info {
+    flex-basis: 100%;
+  }
 }
 
 .accounts-item-name {
@@ -75,4 +181,329 @@
 .accounts-error {
   color: var(--color-primary);
   font-weight: 600;
+}
+
+.accounts-success {
+  padding: var(--spacing-md);
+  border: 1px solid var(--color-secondary);
+  border-radius: var(--border-radius-md);
+  background: var(--color-secondary-light);
+  color: var(--color-secondary);
+}
+
+.accounts-confirm-dialog {
+  width: min(480px, calc(100% - 2rem));
+  max-height: calc(100dvh - 2rem);
+  padding: var(--spacing-xl);
+  border: none;
+  border-top: 5px solid var(--color-primary);
+  border-radius: var(--border-radius-lg);
+  background: var(--color-white);
+  color: var(--color-text);
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+  overflow-y: auto;
+}
+
+.accounts-confirm-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.accounts-confirm-icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto var(--spacing-md);
+  border-radius: 50%;
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.accounts-confirm-title {
+  margin: 0 0 var(--spacing-md);
+  color: var(--color-secondary);
+  font-size: 1.25rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.accounts-confirm-description {
+  margin-bottom: var(--spacing-lg);
+  color: var(--color-text-light);
+}
+
+.accounts-confirm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-lg);
+}
+
+.accounts-confirm-actions .accounts-action {
+  flex: 1;
+  min-height: 44px;
+}
+
+.accounts-confirm-cancel {
+  background: var(--color-white);
+  color: var(--color-secondary);
+  border-color: var(--color-secondary);
+}
+
+.accounts-confirm-cancel:hover:not(:disabled) {
+  background: var(--color-secondary-light);
+}
+
+.accounts-comment-icon {
+  color: var(--color-secondary);
+  background: var(--color-secondary-light);
+  border: 1px solid var(--color-secondary);
+  width: 72px;
+  height: 72px;
+}
+
+.accounts-comment-icon svg {
+  width: 36px;
+  height: 36px;
+}
+
+.accounts-comment-textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 100px;
+  font-family: inherit;
+}
+
+/* Activation Modal Redesign */
+.accounts-activation-dialog {
+  max-width: 1000px !important;
+  width: 90vw;
+  max-height: 85vh;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+}
+
+.accounts-activation-dialog-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 85vh;
+  padding: 24px;
+}
+
+.accounts-activation-grid {
+  display: grid;
+  grid-template-columns: 250px 1fr 300px;
+  gap: 24px;
+  align-items: stretch;
+  text-align: left;
+  margin-top: 16px;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.accounts-activation-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+  padding-right: 8px;
+  min-height: 0;
+}
+
+.accounts-activation-col h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-primary);
+  margin: 0 0 8px 0;
+  border-bottom: 2px solid var(--color-background);
+  padding-bottom: 8px;
+}
+
+.accounts-selector-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.accounts-selector-btn {
+  background: white;
+  border: 1px solid var(--color-background);
+  border-radius: 6px;
+  padding: 12px 16px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  color: #333;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.accounts-selector-btn:hover {
+  background: var(--color-background);
+}
+
+.accounts-selector-btn.is-active {
+  background: var(--color-secondary-light, #e0f2ec);
+  border-color: var(--color-secondary);
+  color: var(--color-secondary);
+  font-weight: 500;
+}
+
+.accounts-pills-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.accounts-pill {
+  padding: 8px 16px;
+  border-radius: 20px;
+  background: var(--color-background);
+  color: #333;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.accounts-pill:hover {
+  background: #d0b990;
+}
+
+.accounts-pill.is-active {
+  background: var(--color-secondary);
+  color: white;
+}
+
+.accounts-permissions-container {
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+}
+
+.accounts-permissions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.accounts-perm-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--color-background);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+}
+
+.accounts-perm-toggle.is-active {
+  background: #f0fdf4;
+  border-color: #22c55e;
+}
+
+.accounts-perm-toggle.is-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: #f3f4f6;
+}
+
+.accounts-perm-toggle input {
+  pointer-events: none;
+}
+
+.accounts-add-perm-btn {
+  margin-top: 16px;
+  width: 100%;
+  margin-top: auto;
+}
+
+.accounts-added-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.accounts-added-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  padding: 12px;
+  border-radius: 6px;
+}
+
+.accounts-added-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+}
+
+.accounts-added-info strong {
+  color: var(--color-primary);
+  font-size: 14px;
+}
+
+.accounts-remove-btn {
+  background: none;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  font-weight: bold;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.accounts-remove-btn:hover {
+  background: #fee2e2;
+}
+
+@media (max-width: 900px) {
+  .accounts-activation-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.accounts-toast-success {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background-color: #f0fdf4;
+  color: #166534;
+  border: 1px solid #22c55e;
+  padding: 16px 24px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  z-index: 10000;
+  font-weight: 600;
+  animation: slideInRight 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes slideInRight {
+  0% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }

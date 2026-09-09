@@ -14,3 +14,8 @@ public class AccessResponse
 {
     public Dictionary<int, string> Permisos { get; set; } = new();
 }
+
+public class UserTypesResponse
+{
+    public Dictionary<string, short> UserTypes { get; set; } = new();
+}

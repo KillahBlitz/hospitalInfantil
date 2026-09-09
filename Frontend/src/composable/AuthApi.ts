@@ -1,5 +1,5 @@
 import { RegisterRequest, LoginRequest, ModulesRequest,ChangePasswordRequest } from '../interfaces/request/Auth';
-import { RegisterResponse, LoginResponse, AccessResponse, AreaResponse, ModulesResponse } from "../interfaces/response/Auth";
+import { RegisterResponse, LoginResponse, AccessResponse, AreaResponse, ModulesResponse, UserTypesResponse } from "../interfaces/response/Auth";
 
 const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/Auth`;
 
@@ -37,6 +37,18 @@ export async function GetModulesCatalog(params: ModulesRequest): Promise<Modules
         },
         body: JSON.stringify(params),
     });
+    const result = await response.json();
+    return result;
+}
+
+export async function GetUserTypesCatalog(): Promise<UserTypesResponse> {
+    const response = await fetch(`${API_BASE_URL}/userTypes`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
+
     const result = await response.json();
     return result;
 }

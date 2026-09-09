@@ -43,6 +43,16 @@ public class AuthController : ControllerBase
         return Ok(result);
     }
 
+    [HttpGet("userTypes")]
+    public async Task<IActionResult> UserTypes()
+    {
+        var response = await _authHandler.GetUserTypes();
+
+        if (response is null)
+            return BadRequest(new { message = "Error al obtener tipos de usuario" });
+        return Ok(response);
+    }
+
     [HttpGet("areas")]
     public async Task<IActionResult> Areas()
     {

@@ -7,10 +7,12 @@ namespace Backend.Handlers;
 public class AuthHandler
 {
     private readonly UserAccessRepository _repository;
+    private readonly SessionTokenService _sessionTokens;
 
-    public AuthHandler(UserAccessRepository repository)
+    public AuthHandler(UserAccessRepository repository, SessionTokenService sessionTokens)
     {
         _repository = repository;
+        _sessionTokens = sessionTokens;
     }
 
     public async Task<AuthResponse?> Authenticate(AuthRequest request)
@@ -33,7 +35,8 @@ public class AuthHandler
             Nombre = usuario.Nombre,
             Alias = usuario.Alias,
             Correo = usuario.Correo,
-            Accesos = accesos
+            Accesos = accesos,
+            AccessToken = _sessionTokens.Create(usuario.Id)
         };
     }
 
@@ -77,6 +80,17 @@ public class AuthHandler
         var passwordHash = BCrypt.Net.BCrypt.HashPassword(request.password);
 
         return await _repository.UpdatePassword(usuario, passwordHash);
+    }
+
+    public async Task<UserTypesResponse?> GetUserTypes()
+    {
+        var types = await _repository.GetUserTypes();
+        var response = new UserTypesResponse();
+        foreach (var t in types)
+        {
+            response.UserTypes.Add(t.NivelUsuario, t.Id);
+        }
+        return response;
     }
 
     public async Task<AreasResponse?> GetAreas()

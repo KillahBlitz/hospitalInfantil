@@ -26,4 +26,6 @@ public partial class SolicitudUsuario
     public string PasswordHash { get; set; } = null!;
 
     public bool Aprobado { get; set; }
+
+    public string? Comentario { get; set; }
 }

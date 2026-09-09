@@ -73,6 +73,10 @@ public partial class UserAccessDbContext : DbContext
 
             entity.ToTable("SolicitudUsuarios", "acceso_usuario");
 
+            entity.Property(e => e.Comentario)
+                .HasColumnName("comentario")
+                .HasColumnType("nvarchar(max)");
+
             entity.HasIndex(e => e.Username, "UQ_Solicitud_User").IsUnique();
 
             entity.HasIndex(e => e.Correo, "UQ_Solicitud_correo").IsUnique();

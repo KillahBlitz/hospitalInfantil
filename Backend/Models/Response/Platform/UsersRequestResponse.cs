@@ -22,4 +22,6 @@ public class Solicitud
     public string Correo { get; set; } = null!;
 
     public bool Aprobado { get; set; }
+
+    public string? Comentario { get; set; }
 }
