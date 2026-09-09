@@ -1,7 +1,11 @@
+using DotNetEnv;
 using Backend.Data;
 using Backend.Handlers;
 using Backend.Models.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.BearerToken;
+
+Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +28,11 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod();
     });
 });
+
+builder.Services.AddAuthentication(BearerTokenDefaults.AuthenticationScheme)
+    .AddBearerToken(options => options.BearerTokenExpiration = TimeSpan.FromHours(8));
+builder.Services.AddAuthorization();
+builder.Services.AddScoped<SessionTokenService>();
 
 builder.Services.AddControllers();
 builder.Services.AddSwaggerGen();
@@ -53,6 +62,7 @@ app.UseSwaggerUI();
 // CORS debe ir antes de UseAuthorization y MapControllers.
 app.UseCors(FrontendCorsPolicy);
 
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.Run();
