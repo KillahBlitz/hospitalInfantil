@@ -124,6 +124,7 @@ public class UserAccessRepository
     public async Task<List<SolicitudUsuario>> GetAllUsersRequest()
     {
         var solicitudes = await _context.SolicitudUsuarios
+            .Where(solicitud => !solicitud.Aprobado)
             .ToListAsync();
         return solicitudes;
     }
