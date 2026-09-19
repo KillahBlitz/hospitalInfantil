@@ -10,7 +10,7 @@ Volver al índice: [[db-index]]
 
 Las 13 tablas del dominio de recursos humanos viven en el esquema SQL **`recursos_humanos`** de la misma base que `acceso_usuario` (ver [[db-infrastructure]]). Tiene dos descripciones versionadas: el script `DataBase/scripts/RecursosHumanos.sql` y el mapeo EF de `Backend/Data/HumanResourcesDbContext.cs` con las 13 entidades de `Backend/Models/Schemas/HumanResources/`.
 
-Desde el 2026-09-19 tiene también repositorio, handler y controller, pero **solo para los catálogos de áreas y puestos**: es el primer corte del módulo de administración de plazas. Ver [[be-api-reference]] y [[be-dbcontext-entities]].
+Desde el 2026-09-19 tiene repositorio, handler y controller con **lectura y escritura de `Areas`, `Puestos` y `Plazas`**, más los catálogos de tipos de contratación y unidades. Es el módulo **Administrar Plazas**, el primero de los cuatro de Recursos Humanos. Ver [[be-api-reference]] §4, [[fe-module-places]] y [[be-dbcontext-entities]].
 
 Hecho verificado — el script se ejecutó contra la instancia conectada el **2026-09-19** dentro de una transacción única, y las 13 tablas, 11 claves foráneas, 13 índices únicos y 1 restricción `CHECK` se confirmaron después consultando `sys.foreign_keys`, `sys.check_constraints`, `sys.indexes` e `INFORMATION_SCHEMA.COLUMNS`.
 
@@ -264,7 +264,11 @@ Puntos donde el diagrama de origen era ambiguo y el esquema aplicado tomó una p
 
 El script **sí lleva semilla**, pero solo de catálogos institucionales: las 133 áreas con su clave, la unidad `NBG` (ramo 12, ZE 2), los tres tipos de contratación (`PERMANENTE`, `EVENTUAL`, `SUPLENCIA`), `ORDINARIA` como tipo de nómina e `ISSSTE` como régimen. **No contiene credenciales, hashes ni datos personales**, así que no comparte el impedimento de versionado de `Init.sql` (ver [[db-scripts-and-migrations]] y [[db-findings]]).
 
-Siguen vacías `TiposPlaza` y `CatalogoImpuestos`. `Puestos` se carga por endpoint, no por script: sus 96 filas salen del archivo de validación quincenal.
+`Puestos` se carga por endpoint, no por script: sus 96 filas salen del archivo de validación quincenal.
+
+**`Plazas` tiene 3 192 filas desde el 2026-09-19**, cargadas con un script generado en `/tmp` que **no se versionó**: son datos operativos, no catálogo, y la fuente son dos xlsx de `~/Downloads` que no están en el repositorio. De esas filas, **536 quedaron sin área** y 3 058 están ocupadas.
+
+Siguen vacías **`TiposPlaza`**, **`CatalogoImpuestos`**, **`Empleados`**, **`Comentarios`**, **`RegistroCodFedPuesto`** y **`Nominas`**.
 
 > **El orden físico de columnas no coincide con el del script.** Las tablas se crearon primero y luego se alteraron, así que en `Areas` el orden real es `Id, Descripcion, ClaveArea` mientras el `CREATE` declara `Id, ClaveArea, Descripcion`. Es irrelevante para EF y para cualquier `SELECT` con columnas nombradas, pero rompe un `INSERT` sin lista de columnas o un `SELECT *` posicional.
 

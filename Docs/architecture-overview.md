@@ -54,7 +54,7 @@ flowchart TD
         CT["Controllers/<br/>rutas, binding, códigos HTTP"]
         H["Handlers/<br/>casos de uso, BCrypt, proyección a DTO"]
         R["Models/Repositories/<br/>UserAccessRepository: todas las consultas"]
-        D["Data/UserAccessDbContext<br/>mapeo relacional"]
+        D["Data/UserAccessDbContext + HumanResourcesDbContext<br/>mapeo relacional"]
         CT --> H --> R --> D
     end
 
@@ -100,7 +100,7 @@ sequenceDiagram
 
 Convenciones de transporte que aplican a todo el sistema:
 
-- Las rutas se derivan de `[Route("[controller]")]`: **no hay prefijo `/api` ni versionado**. Rutas reales: `/Auth/...`, `/Platform/...`, `/HumanResources`, `/Contability` (nótese la grafía `Contability`).
+- Las rutas se derivan de `[Route("[controller]")]`: **no hay prefijo `/api` ni versionado**. Rutas reales: `/Auth/...`, `/Platform/...`, `/HumanResources/...`, `/Contability` (nótese la grafía `Contability`).
 - Serialización JSON por defecto de ASP.NET Core: propiedades en **camelCase** y claves de diccionario numéricas convertidas a **string**.
 - `[ApiController]` produce `400` automático ante DataAnnotations inválidas, antes de entrar al handler.
 - Tabla maestra de endpoints: [[be-api-reference]]. Clientes que los consumen: [[fe-api-clients]].
@@ -164,7 +164,7 @@ flowchart LR
     GA --> JSON["accesos: [ { 'Plataforma': [ { '1': [10,20] } ] } ]"]
     JSON --> LS["localStorage.user"]
     LS --> NAV["PrincipalPage: botones de área del sidebar"]
-    LS --> TABS["AreaTemplate: pestañas de módulo + module.permisos"]
+    LS --> TABS["Barra lateral: arbol area -> modulo<br/>AreaTemplate pinta el modulo + module.permisos"]
     TABS --> BTN["Botones de acción por permiso"]
 ```
 
@@ -198,7 +198,7 @@ Antes de crear o migrar catálogos, confirma los ids y nombres reales. Ver [[db-
 
 Ausencias verificadas, relevantes al planear trabajo:
 
-- **Sin migraciones EF.** El esquema vive en la instancia SQL y su única descripción versionada es el mapeo de `UserAccessDbContext`; la imagen `useraccess_schema.png` ya no existe en el repositorio.
+- **Sin migraciones EF.** El esquema vive en la instancia SQL. Sus descripciones versionadas son el mapeo de `UserAccessDbContext` para `acceso_usuario`, y para `recursos_humanos` el de `HumanResourcesDbContext` más el script `DataBase/scripts/RecursosHumanos.sql` (ver [[db-schema-recursos-humanos]]). La imagen `useraccess_schema.png` ya no existe en el repositorio.
 - **`DataBase/scripts/Init.sql` existe pero NO está versionado ni es fiable.** Apareció sin seguimiento en Git y diverge del mapeo EF en dos puntos que rompen la aplicación: crea `SolicitudUsuarios` sin `PRIMARY KEY` y no crea la columna `comentario`. Además su seed deja el sistema sin nadie autorizado. No lo uses para provisionar sin corregirlo antes. Ver [[db-scripts-and-migrations]].
 - **Sin seed de catálogos**: áreas, módulos, permisos y tipos deben existir en la base para que la aplicación sea usable.
 - **Sin pruebas**: no hay proyecto de test en el backend ni suite en el frontend.

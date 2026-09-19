@@ -12,6 +12,8 @@ Tres archivos. **No son hooks de React**: son módulos TypeScript que exportan f
 | --- | --- | --- | --- |
 | `AuthApi.ts` | 103 | `${VITE_API_BASE_URL}/Auth` | 7 |
 | `PlatformApi.ts` | 149 | `${VITE_API_BASE_URL}/Platform` | 7 |
+| `HumanResourcesApi.ts` | 140 | `${VITE_API_BASE_URL}/HumanResources` | 14 |
+| `Session.ts` | 23 | — (no hace `fetch`) | 3 |
 | `HumanResourcesApi.ts` | 0 | — | **archivo vacío** |
 
 La base se calcula en el ámbito del módulo:
@@ -24,6 +26,19 @@ const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/Auth`;
 `VITE_API_BASE_URL` es la única variable de entorno del frontend y se **incrusta en el bundle** durante el build ([[fe-config-deployment]]). Si no está definida, el literal se convierte en `"undefined/Auth"` y todas las peticiones fallan con una URL relativa inválida. No hay valor por defecto ni comprobación. *(Inferencia.)*
 
 ## 1. Dos generaciones de clientes en el mismo proyecto
+
+### `HumanResourcesApi.ts` (2026-09-19)
+
+Catorce funciones sobre `/HumanResources`: `getAreas`, `getPuestos`, `getPlazas`, `getTiposContratacion`, `getUnidades`, y el alta, edición y baja de áreas, puestos y plazas. Sigue el patrón bueno de `PlatformApi.ts` —comprueba `response.ok` y lanza `Error` con el mensaje del servidor—, con dos diferencias:
+
+- **No envía `Authorization`**: ningún endpoint de `/HumanResources` lleva `[Authorize]` (decisión explícita del usuario; la protección llegará con un gateway). Por lo mismo **no pasa por `Session.ts`**: esos endpoints no pueden devolver 401.
+- `getPlazas` construye la *query string* con `URLSearchParams`, omitiendo los filtros nulos o vacíos. Es el único cliente con paginación.
+
+Para los errores de carga masiva extrae el motivo útil con `MensajeDeFallo`: primero `detalle[0].motivo`, luego el caso de duplicado, y como último recurso `message`.
+
+### `Session.ts` (2026-09-19)
+
+No es un cliente HTTP: centraliza el cierre de sesión. `clearSession(notice?)` borra `localStorage.user`, deja el aviso en `sessionStorage` y hace `window.location.replace('/')`; `throwSessionExpired()` lo invoca y lanza; `takeSessionNotice()` lo consume una sola vez, y el login lo muestra. Los **cinco** `401` y las **cinco** guardas `if (!accessToken)` de `PlatformApi.ts` pasan por ahí. Ver [[fe-session-state]].
 
 La diferencia de calidad entre `AuthApi.ts` y `PlatformApi.ts` es el hecho más importante de esta nota.
 

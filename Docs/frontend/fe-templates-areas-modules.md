@@ -67,54 +67,70 @@ El único módulo sin componente es `1002`. Al construirlo hay que añadir su en
 
 ## 2. Los envoltorios de área
 
-`Platform` y `HumanResources` son adaptadores mínimos que solo fijan `areaKey`:
+`Platform`, `HumanResources` y `Contability` son adaptadores mínimos que fijan `areaKey` y reenvían el módulo elegido:
 
 ```jsx
-<AreaTemplate user={user} catalogs={catalogs} areaKey="plataforma" title="Plataforma" />
+<AreaTemplate user={user} catalogs={catalogs} areaKey="plataforma" selectedModuleId={selectedModuleId} />
 ```
-(`platform.jsx:5-10`; equivalente en `humanResources.jsx:5-10` con `areaKey="recursos humanos"`)
 
-La prop `title` **se recibe y nunca se usa** en `AreaTemplate` (`areaTemplate.jsx:41`); es una de las 5 advertencias de oxlint ([[fe-config-deployment]]).
-
-`Contability` **no usa `AreaTemplate`**: es una vista plana con `<h1>Contabilidad</h1>` y un párrafo (`contability.jsx:1-8`). Recibe `user` y `catalogs` y los ignora (2 advertencias de lint). Añadirle módulos exigirá migrarla al patrón de `AreaTemplate`.
+La prop `title`, que se recibía y nunca se usaba, **se eliminó** el 2026-09-19 junto con la barra de pestañas. `Contability` **ya usa `AreaTemplate`** con `areaKey="contabilidad"`: antes era una vista plana que ignoraba sus props y nunca montaba el módulo `1002`, que por tanto era inalcanzable. Esas tres advertencias de oxlint desaparecieron: el `lint` está hoy **en cero**.
 
 `Start` sí usa `user` (para el saludo, `start.jsx:90`) e ignora `catalogs`. Su contenido son dos arrays literales: `PURPOSE_CARDS` (3 tarjetas, `start.jsx:3-19`) e `INSTITUTIONAL_PAGES` (12 reseñas institucionales, `start.jsx:21-82`). **Son textos locales**: no hay URL clicables, ni CMS, ni fetch. Su exactitud factual no se validó como parte de esta documentación.
 
-## 3. Cómo `AreaTemplate` resuelve pestañas y permisos
+## 3. La selección de módulo vive en la barra lateral
 
-`Frontend/src/templates/shared/areaTemplate.jsx`
+**Cambio del 2026-09-19.** Antes `AreaTemplate` pintaba una barra de pestañas horizontal y era dueño del módulo activo. Ahora la selección es un **árbol desplegable en la barra lateral** y `AreaTemplate` solo renderiza el módulo que le indiquen.
 
-### `GetAreaModules(user, catalogs, areaKey)` — líneas 14-39
+```
+Inicio
+Recursos Humanos              ⌄     <- pulsar despliega, no navega
+   Administrar Plazas               <- pulsar selecciona, acento dorado si activo
+   Administrar Empleados
+   Registrar Nominas
+   Generar FOMOPE
+Plataforma                    ⌄
+   configuracion de cuentas
+   Administrar Permisos
+```
+
+Reparto de responsabilidades:
+
+| Pieza | Qué hace ahora |
+| --- | --- |
+| `principalPage.jsx` | Construye el árbol con `BuildNavAreas(user, catalogs)` y mantiene tres estados: `activeAreaKey`, `activeModuleId` y `expandedAreas` (lista de áreas abiertas, varias a la vez) |
+| `areaTemplate.jsx` | Exporta `GetAreaModules` y renderiza **solo** el módulo cuyo id recibe en `selectedModuleId` |
+| Envoltorios de área | Reenvían `selectedModuleId` |
+
+Consecuencias verificadas:
+
+- **Pulsar un área ya no navega**, solo despliega. Por eso el área `almacen` —que existe en la base y no tiene plantilla en `TEMPLATE_REGISTRY`— dejó de producir «Error al cargar el módulo»: al no tener módulos, al desplegarla dice «Sin modulos disponibles».
+- **Ya no hay estado de pestaña inicial.** Desapareció el `useState(modules[0]?.id ?? null)` que solo funcionaba porque `PrincipalPage` no montaba el template hasta terminar de cargar catálogos. Al entrar se queda en `Inicio` con todo replegado.
+- Las reglas `.area-tabs*` y `.area-tab*` de `areaTemplate.css` se eliminaron por quedar huérfanas.
+
+### `GetAreaModules(user, catalogs, areaKey)`
+
+Su cuerpo **no cambió**; solo se le añadió `export` para que `principalPage.jsx` construya el árbol con la misma lógica que antes alimentaba las pestañas.
 
 1. Recorre `user.accesos` (array de diccionarios área → módulos).
-2. Busca la clave cuyo `toLowerCase()` coincide con `areaKey.toLowerCase()` (`areaTemplate.jsx:21-23`). Aquí sí hay tolerancia de casing, pero **tampoco hay `trim()`**.
+2. Busca la clave cuyo `toLowerCase()` coincide con `areaKey.toLowerCase()`. Hay tolerancia de casing pero **no hay `trim()`**.
 3. Para cada diccionario de módulos de esa área, por cada clave `moduleId`:
    - `id = Number(moduleId)` — las claves llegan como **string** porque JSON no admite claves numéricas ([[be-dto-contracts]]).
    - `name = catalogs.modules[id]` — puede quedar **`undefined`** si el módulo no está en el catálogo cargado.
    - `permisos = moduloDict[moduleId] ?? []` — array de IDs de permiso, **sin nombres**.
-4. Devuelve `[{id, name, permisos}]`. Memoizado con `useMemo` sobre `[user, catalogs, areaKey]` (`areaTemplate.jsx:42-45`).
+4. Devuelve `[{id, name, permisos}]`.
 
-### Selección de pestaña
+El orden de los módulos es **el de iteración de las claves del JSON de accesos**, no un `ORDER BY` de SQL ni un `sort()` en el cliente.
 
-```js
-const [selectedId, setSelectedId] = useState(modules[0]?.id ?? null);
-```
-(`areaTemplate.jsx:47`)
+Un módulo con `name === undefined` se pinta en la barra como `Modulo {id}` en lugar de quedar en blanco, que era el defecto anterior. Eso ocurre cuando el login incluye un módulo que el catálogo no devolvió —típicamente `Activo = false`— porque el login no filtra activos al construir `accesos` mientras el catálogo sí ([[be-flows]], [[db-table-modulos]]).
 
-Se inicializa **una sola vez**, en el primer render. No hay `useEffect` de sincronización: si `modules` cambiara después (por ejemplo porque `catalogs` llega más tarde), `selectedId` se quedaría en el valor anterior o en `null`. En la práctica no se observa porque `PrincipalPage` no monta el template hasta que `loading === false` (`principalPage.jsx:153-156`). *(Inferencia.)*
-
-El orden de las pestañas es **el orden de iteración de las claves del JSON de accesos**, no un orden explícito de SQL. No hay `ORDER BY` que lo garantice ni `sort()` en el cliente.
-
-### Estados de la vista (`areaTemplate.jsx:52-90`)
+### Estados de la vista
 
 | Condición | Qué se muestra |
 | --- | --- |
-| `modules.length === 0` | Franja vino con "Sin modulos disponibles" y el mensaje "No tienes modulos asignados en esta area." |
-| Módulo seleccionado **con** componente en `MODULE_REGISTRY` | `<ModuleComponent user catalogs module />` |
-| Módulo seleccionado **sin** componente | Título del módulo + "Este modulo aun no tiene contenido asignado." |
-| Módulo con `name === undefined` | La pestaña se dibuja **vacía**; no se filtra ni se pone un texto de respaldo |
-
-Ese último caso ocurre cuando el JSON de login incluye un módulo que el catálogo no devolvió — típicamente un módulo con `Activo = false`, o de un área inactiva, porque el login no filtra activos al construir `accesos` mientras que el catálogo de módulos sí filtra ([[be-flows]], [[db-table-modulos]]). Es un defecto real ([[fe-findings]]).
+| Sin módulo seleccionado y el área tiene módulos | «Selecciona un modulo en el menu lateral.» |
+| El área no tiene módulos | «No tienes modulos asignados en esta area.» |
+| Módulo **con** componente en `MODULE_REGISTRY` | `<ModuleComponent user catalogs module />` |
+| Módulo **sin** componente | Título del módulo + «Este modulo aun no tiene contenido asignado.» |
 
 ## 4. Diagrama de resolución completa
 

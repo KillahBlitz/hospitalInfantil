@@ -16,7 +16,7 @@ Bóveda de documentación estilo Obsidian del sistema administrativo del **Hospi
 
 | Bóveda | Índice | Qué cubre |
 | --- | --- | --- |
-| Base de datos | **[[db-index]]** | Esquema SQL `acceso_usuario`, 7 tablas, relaciones, consultas por flujo, infraestructura SQL Server, migraciones |
+| Base de datos | **[[db-index]]** | Esquemas SQL `acceso_usuario` (7 tablas) y `recursos_humanos` (13 tablas), relaciones, consultas por flujo, infraestructura SQL Server, migraciones |
 | Backend | **[[be-index]]** | API ASP.NET Core: controllers, handlers, repositorio, EF Core, DTO, autenticación, despliegue |
 | Frontend | **[[fe-index]]** | SPA React + Vite: routing, páginas, templates de área/módulo, clientes API, sesión, sistema de diseño |
 
@@ -30,9 +30,15 @@ Bóveda de documentación estilo Obsidian del sistema administrativo del **Hospi
 
 **Voy a agregar un módulo de interfaz**
 [[fe-templates-areas-modules]] → [[db-table-modulos]] → [[fe-api-clients]] → [[fe-design-system]]
+El ejemplo más completo y reciente es [[fe-module-places]]: permisos por id, filtros y paginado en servidor, diálogos y escalado por viewport.
 
 **Voy a tocar el esquema de base de datos**
 [[db-schema-acceso-usuario]] → [[db-relationships]] → [[be-dbcontext-entities]] → [[db-scripts-and-migrations]]
+Para recursos humanos: [[db-schema-recursos-humanos]] → `DataBase/scripts/RecursosHumanos.sql`
+
+**Voy a seguir con Recursos Humanos** (el trabajo en curso)
+[[db-schema-recursos-humanos]] → [[be-api-reference]] §4 → [[fe-module-places]] → [[fe-templates-areas-modules]]
+El siguiente paso concreto está al final de `.claude/docs/MEMORY.md`.
 
 **Quiero entender permisos y accesos**
 [[db-table-usuario-modulo-permisos]] → [[be-auth-session]] → [[fe-session-state]] → [[fe-module-permits]]
