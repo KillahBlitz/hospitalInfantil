@@ -6,7 +6,7 @@ updated: 2026-09-18
 
 # Referencia de la API HTTP
 
-**16 endpoints** verificados uno por uno en el código del 2026-09-18. Las rutas respetan **exactamente la grafía del código** (incluidas las mayúsculas y la mezcla de idiomas). Detalle de DTO en [[be-dto-contracts]]; cadenas internas en [[be-flows]].
+**31 endpoints** verificados uno por uno en el código; los de `/HumanResources` corresponden al 2026-09-19. Las rutas respetan **exactamente la grafía del código** (incluidas las mayúsculas y la mezcla de idiomas). Detalle de DTO en [[be-dto-contracts]]; cadenas internas en [[be-flows]].
 
 ## 0. Reglas generales
 
@@ -17,8 +17,8 @@ updated: 2026-09-18
 - `[FromBody]` explícito en todos los DTO de entrada.
 - Respuestas en **camelCase**; las **claves de diccionario se preservan literalmente**; `DateOnly` → `"yyyy-MM-dd"`. Ver [[be-architecture]] §8.
 - **Base URL:** el frontend compone `${VITE_API_BASE_URL}/Auth` y `${VITE_API_BASE_URL}/Platform` — ver [[fe-api-clients]].
-- Ningún endpoint acepta paginación, ordenación ni filtros por query string.
-- `CancellationToken` solo en las 5 acciones nuevas de `Platform`.
+- Un solo endpoint acepta paginación, ordenación y filtros por query string: `GET /HumanResources/Plazas` (§4.1b). El resto devuelve la colección completa.
+- `CancellationToken` en las 5 acciones de `Platform` y en todas las de `/HumanResources`.
 
 ## 1. Tabla maestra
 
@@ -38,13 +38,23 @@ updated: 2026-09-18
 | 12 | `POST` | `/Platform/Users/Approve` | **`[Authorize]`** | `ApproveUserRequest` | `200` `{success,code,message}` | `400`, `401`, `403`, `404`, `409`, `500` |
 | 13 | `GET` | `/Platform/Users/{id:int}/Permissions` | **`[Authorize]`** | ruta | `200` `UserPermissionsResponse` | `400`, `401`, `404`, `500` |
 | 14 | `PUT` | `/Platform/Users/Permissions` | **`[Authorize]`** | `UpdateUserPermissionsRequest` | `200` `{success,code,message}` | `400`, `401`, `403`, `404`, `500` |
-| 15 | `GET` | `/HumanResources/Areas` | **—** | — | `200` `AreasResponse` | — |
-| 16 | `POST` | `/HumanResources/Areas` | **—** | `AreaRequest` | `201` `CatalogUploadResponse` | `400` rechazo, `409` ya existía |
-| 17 | `POST` | `/HumanResources/Areas/Upload` | **—** | `UploadAreasRequest` | `200` `CatalogUploadResponse` | `400` todo rechazado, `409` integridad |
-| 18 | `GET` | `/HumanResources/Puestos` | **—** | — | `200` `PuestosResponse` | — |
-| 19 | `POST` | `/HumanResources/Puestos` | **—** | `PuestoRequest` | `201` `CatalogUploadResponse` | `400` rechazo, `409` ya existía |
-| 20 | `POST` | `/HumanResources/Puestos/Upload` | **—** | `UploadPuestosRequest` | `200` `CatalogUploadResponse` | `400` todo rechazado, `409` integridad |
-| 21 | `POST` | `/Contability` | — | — | `200` `text/plain` | — |
+| 15 | `GET` | `/HumanResources/Plazas` | **—** | query `PlazaQueryRequest` | `200` `PlazasResponse` | — |
+| 15a | `POST` | `/HumanResources/Plazas` | **—** | `PlazaRequest` | `201` `CatalogOperationResponse` | `400` `invalid`, `409` `conflict` |
+| 15b | `PUT` | `/HumanResources/Plazas/{id:int}` | **—** | `PlazaRequest` | `200` `CatalogOperationResponse` | `400`, `404`, `409` |
+| 15c | `DELETE` | `/HumanResources/Plazas/{id:int}` | **—** | ruta | `200` `CatalogOperationResponse` | `400`, `404`, `409` si tiene empleados o registros de codigo federal |
+| 15d | `GET` | `/HumanResources/Unidades` | **—** | — | `200` `UnidadesResponse` | — |
+| 16 | `GET` | `/HumanResources/TiposContratacion` | **—** | — | `200` `TiposContratacionResponse` | — |
+| 17 | `GET` | `/HumanResources/Areas` | **—** | — | `200` `AreasResponse` | — |
+| 18 | `POST` | `/HumanResources/Areas` | **—** | `AreaRequest` | `201` `CatalogUploadResponse` | `400` rechazo, `409` ya existía |
+| 19 | `POST` | `/HumanResources/Areas/Upload` | **—** | `UploadAreasRequest` | `200` `CatalogUploadResponse` | `400` todo rechazado, `409` integridad |
+| 20 | `PUT` | `/HumanResources/Areas/{id:int}` | **—** | `AreaRequest` | `200` `CatalogOperationResponse` | `400` `invalid`, `404` `not_found`, `409` `conflict` |
+| 21 | `DELETE` | `/HumanResources/Areas/{id:int}` | **—** | ruta | `200` `CatalogOperationResponse` | `400`, `404`, `409` si tiene plazas adscritas |
+| 22 | `GET` | `/HumanResources/Puestos` | **—** | — | `200` `PuestosResponse` | — |
+| 23 | `POST` | `/HumanResources/Puestos` | **—** | `PuestoRequest` | `201` `CatalogUploadResponse` | `400` rechazo, `409` ya existía |
+| 24 | `POST` | `/HumanResources/Puestos/Upload` | **—** | `UploadPuestosRequest` | `200` `CatalogUploadResponse` | `400` todo rechazado, `409` integridad |
+| 25 | `PUT` | `/HumanResources/Puestos/{id:int}` | **—** | `PuestoRequest` | `200` `CatalogOperationResponse` | `400` `invalid`, `404` `not_found`, `409` `conflict` |
+| 26 | `DELETE` | `/HumanResources/Puestos/{id:int}` | **—** | ruta | `200` `CatalogOperationResponse` | `400`, `404`, `409` si tiene plazas asociadas |
+| 27 | `POST` | `/Contability` | — | — | `200` `text/plain` | — |
 
 > **Atención:** los endpoints **8 y 9 devuelven datos personales de todos los usuarios y solicitudes sin ninguna autenticación**. Ver [[be-auth-session]] y [[be-findings]].
 
@@ -319,6 +329,33 @@ Las cuatro rutas `POST` pasan por el mismo camino: `HumanResourcesHandler` valid
 - `code` vale `success` si no hubo rechazos, `partial` si hubo rechazos pero también inserciones, y `rejected` si no se insertó nada.
 - Las rutas de alta individual (`POST /Areas`, `POST /Puestos`) envuelven un solo elemento y traducen el resultado: `201` si insertó, `409` si ya existía, `400` si lo rechazó.
 
+### 4.1b Plazas: consulta paginada y filtrada
+
+`GET /HumanResources/Plazas` es el único endpoint de lectura con **paginado en servidor**. Acepta por *query string*:
+
+| Parámetro | Tipo | Comportamiento |
+| --- | --- | --- |
+| `pagina` | `int` | Por defecto 1. Un valor menor que 1 se corrige a 1; si excede el total, **se acota a la última página** en lugar de devolver vacío |
+| `tamano` | `int` | Solo **10, 50 o 100**. Cualquier otro valor cae a 10, sin error |
+| `texto` | `string` | Busca en clave de plaza, código y descripción de puesto, denominación, nombre de área, código federal y clave presupuestal |
+| `areaId`, `puestoId`, `tipoContratacionId` | `int?` | Igualdad exacta |
+| `ocupabilidad` | `bool?` | `true` ocupadas, `false` vacantes, ausente todas |
+| `fechaVacancia` | `DateOnly?` | Igualdad exacta sobre `FechaVacancia`. Solo las 134 plazas vacantes tienen ese dato |
+
+La respuesta trae `pagina`, `tamano`, `total`, `totalPaginas` y `plazas`, con los nombres de puesto, área, tipo de contratación y unidad ya resueltos por `Include`, para que el cliente no tenga que cruzar catálogos.
+
+**El orden es numérico, no lexicográfico.** `ClavePlaza` es `varchar`, así que un `ORDER BY` directo daría `1, 10, 100, 2`. Se ordena por `ClavePlaza.Length` y luego por el valor, que con claves de solo dígitos equivale al orden numérico: verificado, devuelve `1, 2, 3 … 10`.
+
+### 4.1c Plazas: escritura
+
+`POST`, `PUT` y `DELETE` comparten `PlazaRequest` y devuelven `CatalogOperationResponse`. Obligatorios: `clavePlaza` (≤10, única, homologada a mayúsculas), `puestoId`, `tipoContratacionId` y `unidadId`. Opcionales: `areaId`, `tipoPlazaId`, `denominacionPuesto` (≤150), `cantidadPlazaHora`, `ocupabilidad`, `fechaVacancia`, `codigoSHCP` (≤30), `codigoFederalPuesto` (≤30) y `clavePresupuestalActual` (≤60).
+
+**Las cinco llaves foráneas se comprueban antes de escribir**, así que un `areaId` inexistente devuelve `400 invalid` con el motivo, no un error de integridad de SQL Server.
+
+**La baja comprueba dependientes en dos tablas**: rechaza con `409` si la plaza tiene empleados asignados (`Empleados.PlazaId`) o registros de código federal (`RegistroCodFedPuesto.PlazaId`), diciendo cuántos.
+
+`PlazaItem` expone `puestoId`, `tipoContratacionId`, `tipoPlazaId` y `unidadId` además de los nombres resueltos, precisamente para que un formulario de edición pueda precargar sus desplegables sin una segunda petición.
+
 ### 4.2 Áreas
 
 `AreaRequest` es `{ claveArea?, descripcion }`. **Ambos campos son opcionales en el DTO**; el handler exige solo `descripcion`.
@@ -350,7 +387,7 @@ El recorte de espacios no es cosmético: en el archivo de origen **6 códigos tr
 | `GET /weatherforecast/` | Aparece en `Backend/Backend.http:3` pero **no existe controller**. `Backend/WeatherForecast.cs` es un modelo huérfano. → `404` |
 | `GET /Auth/GetAccessCatalog` | La invoca `AuthApi.GetAccessCatalog()` en el frontend; **no existe**. La función no se usa. Ver [[fe-api-clients]] |
 | `POST /Auth/logout`, `/Auth/refresh` | No existen: no se llama a `MapIdentityApi`. El cierre de sesión es solo del navegador |
-| `PUT`/`DELETE` de áreas, módulos, permisos o tipos | No existen: los catálogos son **solo lectura** |
+| `PUT`/`DELETE` de áreas, módulos, permisos o tipos **de `acceso_usuario`** | No existen: esos catálogos son **solo lectura**. Los de `recursos_humanos` sí tienen `PUT` y `DELETE` (§4) |
 | `POST /Platform/Users/{id}/reject` | No existe: **no hay rechazo de solicitudes**, solo aprobación |
 
 ## 6. Matriz resumen de protección

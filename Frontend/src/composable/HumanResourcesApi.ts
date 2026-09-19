@@ -1,9 +1,12 @@
-import type { AreaRequest, PuestoRequest } from "../interfaces/request/HumanResources";
+import type { AreaRequest, PuestoRequest, PlazaQuery, PlazaRequest } from "../interfaces/request/HumanResources";
 import type {
     AreasResponse,
     PuestosResponse,
     CatalogUploadResponse,
     CatalogOperationResponse,
+    PlazasResponse,
+    TiposContratacionResponse,
+    UnidadesResponse,
 } from "../interfaces/response/HumanResources";
 
 const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/HumanResources`;
@@ -23,6 +26,74 @@ export async function getAreas(signal?: AbortSignal): Promise<AreasResponse> {
         throw new Error(`Error fetching areas: ${response.statusText}`);
     }
     return response.json();
+}
+
+export async function getPlazas(query: PlazaQuery, signal?: AbortSignal): Promise<PlazasResponse> {
+    const params = new URLSearchParams();
+    Object.entries(query).forEach(([clave, valor]) => {
+        if (valor === null || valor === undefined || valor === '') return;
+        params.set(clave, String(valor));
+    });
+
+    const response = await fetch(`${API_BASE_URL}/Plazas?${params.toString()}`, { signal });
+    if (!response.ok) {
+        throw new Error(`Error fetching plazas: ${response.statusText}`);
+    }
+    return response.json();
+}
+
+export async function getTiposContratacion(signal?: AbortSignal): Promise<TiposContratacionResponse> {
+    const response = await fetch(`${API_BASE_URL}/TiposContratacion`, { signal });
+    if (!response.ok) {
+        throw new Error(`Error fetching tipos de contratacion: ${response.statusText}`);
+    }
+    return response.json();
+}
+
+export async function getUnidades(signal?: AbortSignal): Promise<UnidadesResponse> {
+    const response = await fetch(`${API_BASE_URL}/Unidades`, { signal });
+    if (!response.ok) {
+        throw new Error(`Error fetching unidades: ${response.statusText}`);
+    }
+    return response.json();
+}
+
+export async function createPlaza(plaza: PlazaRequest): Promise<CatalogOperationResponse> {
+    const response = await fetch(`${API_BASE_URL}/Plazas`, {
+        method: 'POST',
+        headers: JSON_HEADERS,
+        body: JSON.stringify(plaza),
+    });
+
+    const result = await response.json().catch(() => null);
+    if (!response.ok || !result?.success) {
+        throw new Error(result?.message ?? 'No se pudo registrar la plaza.');
+    }
+    return result;
+}
+
+export async function updatePlaza(id: number, plaza: PlazaRequest): Promise<CatalogOperationResponse> {
+    const response = await fetch(`${API_BASE_URL}/Plazas/${id}`, {
+        method: 'PUT',
+        headers: JSON_HEADERS,
+        body: JSON.stringify(plaza),
+    });
+
+    const result = await response.json().catch(() => null);
+    if (!response.ok || !result?.success) {
+        throw new Error(result?.message ?? 'No se pudo actualizar la plaza.');
+    }
+    return result;
+}
+
+export async function deletePlaza(id: number): Promise<CatalogOperationResponse> {
+    const response = await fetch(`${API_BASE_URL}/Plazas/${id}`, { method: 'DELETE' });
+
+    const result = await response.json().catch(() => null);
+    if (!response.ok || !result?.success) {
+        throw new Error(result?.message ?? 'No se pudo eliminar la plaza.');
+    }
+    return result;
 }
 
 export async function getPuestos(signal?: AbortSignal): Promise<PuestosResponse> {

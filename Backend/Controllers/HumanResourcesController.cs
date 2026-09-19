@@ -21,6 +21,55 @@ public class HumanResourcesController : ControllerBase
         _logger = logger;
     }
 
+    [HttpGet("Plazas")]
+    public async Task<IActionResult> GetPlazas(
+        [FromQuery] PlazaQueryRequest query, CancellationToken cancellationToken)
+    {
+        var response = await _humanResourcesHandler.GetPlazas(query, cancellationToken);
+        return Ok(response);
+    }
+
+    [HttpPost("Plazas")]
+    public async Task<IActionResult> CreatePlaza(
+        [FromBody] PlazaRequest request, CancellationToken cancellationToken)
+    {
+        var response = await _humanResourcesHandler.CreatePlaza(request, cancellationToken);
+        return response.Code == "success"
+            ? StatusCode(StatusCodes.Status201Created, response)
+            : TraducirOperacion(response);
+    }
+
+    [HttpPut("Plazas/{id:int}")]
+    public async Task<IActionResult> UpdatePlaza(
+        int id, [FromBody] PlazaRequest request, CancellationToken cancellationToken)
+    {
+        if (id <= 0) return BadRequest(new { message = "La plaza indicada no es valida." });
+        var response = await _humanResourcesHandler.UpdatePlaza(id, request, cancellationToken);
+        return TraducirOperacion(response);
+    }
+
+    [HttpDelete("Plazas/{id:int}")]
+    public async Task<IActionResult> DeletePlaza(int id, CancellationToken cancellationToken)
+    {
+        if (id <= 0) return BadRequest(new { message = "La plaza indicada no es valida." });
+        var response = await _humanResourcesHandler.DeletePlaza(id, cancellationToken);
+        return TraducirOperacion(response);
+    }
+
+    [HttpGet("Unidades")]
+    public async Task<IActionResult> GetUnidades(CancellationToken cancellationToken)
+    {
+        var response = await _humanResourcesHandler.GetUnidades(cancellationToken);
+        return Ok(response);
+    }
+
+    [HttpGet("TiposContratacion")]
+    public async Task<IActionResult> GetTiposContratacion(CancellationToken cancellationToken)
+    {
+        var response = await _humanResourcesHandler.GetTiposContratacion(cancellationToken);
+        return Ok(response);
+    }
+
     [HttpGet("Areas")]
     public async Task<IActionResult> GetAreas(CancellationToken cancellationToken)
     {

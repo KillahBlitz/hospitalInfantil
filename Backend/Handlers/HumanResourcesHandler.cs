@@ -12,6 +12,15 @@ public class HumanResourcesHandler
     private const int LargoMaximoCodigoPuesto = 20;
     private const int LargoMaximoDescripcionPuesto = 150;
     private const int LargoMaximoGradoSalarial = 10;
+    private const int TamanoPaginaPorDefecto = 10;
+
+    private const int LargoMaximoClavePlaza = 10;
+    private const int LargoMaximoDenominacion = 150;
+    private const int LargoMaximoCodigoSHCP = 30;
+    private const int LargoMaximoCodigoFederal = 30;
+    private const int LargoMaximoClavePresupuestal = 60;
+
+    private static readonly int[] TamanosPagina = [10, 50, 100];
 
     private readonly HumanResourcesRepository _repository;
 
@@ -48,6 +57,70 @@ public class HumanResourcesHandler
                 Descripcion = puesto.Descripcion,
                 GradoSalarial = puesto.GradoSalarial,
                 RangoSalarial = puesto.RangoSalarial
+            }).ToList()
+        };
+    }
+
+    public async Task<TiposContratacionResponse> GetTiposContratacion(
+        CancellationToken cancellationToken = default)
+    {
+        var tipos = await _repository.GetTiposContratacion(cancellationToken);
+
+        return new TiposContratacionResponse
+        {
+            TiposContratacion = tipos.Select(tipo => new TipoContratacionItem
+            {
+                Id = tipo.Id,
+                Descripcion = tipo.Descripcion
+            }).ToList()
+        };
+    }
+
+    public async Task<PlazasResponse> GetPlazas(
+        PlazaQueryRequest filtros, CancellationToken cancellationToken = default)
+    {
+        var tamano = TamanosPagina.Contains(filtros.Tamano) ? filtros.Tamano : TamanoPaginaPorDefecto;
+        var pagina = filtros.Pagina < 1 ? 1 : filtros.Pagina;
+
+        var (total, plazas) = await _repository.GetPlazasPaginadas(filtros, pagina, tamano, cancellationToken);
+        var totalPaginas = total == 0 ? 0 : (int)Math.Ceiling(total / (double)tamano);
+
+        if (totalPaginas > 0 && pagina > totalPaginas)
+        {
+            pagina = totalPaginas;
+            (total, plazas) = await _repository.GetPlazasPaginadas(filtros, pagina, tamano, cancellationToken);
+        }
+
+        return new PlazasResponse
+        {
+            Pagina = pagina,
+            Tamano = tamano,
+            Total = total,
+            TotalPaginas = totalPaginas,
+            Plazas = plazas.Select(plaza => new PlazaItem
+            {
+                Id = plaza.Id,
+                ClavePlaza = plaza.ClavePlaza,
+                CodigoPuesto = plaza.Puesto.CodigoPuesto,
+                DescripcionPuesto = plaza.Puesto.Descripcion,
+                GradoSalarial = plaza.Puesto.GradoSalarial,
+                DenominacionPuesto = plaza.DenominacionPuesto,
+                PuestoId = plaza.PuestoId,
+                TipoContratacionId = plaza.TipoContratacionId,
+                TipoPlazaId = plaza.TipoPlazaId,
+                UnidadId = plaza.UnidadId,
+                AreaId = plaza.AreaId,
+                ClaveArea = plaza.Area?.ClaveArea,
+                Area = plaza.Area?.Descripcion,
+                TipoContratacion = plaza.TipoContratacion.Descripcion,
+                TipoPlaza = plaza.TipoPlaza?.Descripcion,
+                Unidad = plaza.Unidad.Nombre,
+                Ocupabilidad = plaza.Ocupabilidad,
+                FechaVacancia = plaza.FechaVacancia,
+                CantidadPlazaHora = plaza.CantidadPlazaHora,
+                CodigoSHCP = plaza.CodigoSHCP,
+                CodigoFederalPuesto = plaza.CodigoFederalPuesto,
+                ClavePresupuestalActual = plaza.ClavePresupuestalActual
             }).ToList()
         };
     }
@@ -350,6 +423,164 @@ public class HumanResourcesHandler
 
         await _repository.DeletePuesto(puesto, cancellationToken);
         return Resultado(true, "success", "Puesto eliminado.");
+    }
+
+    public async Task<UnidadesResponse> GetUnidades(CancellationToken cancellationToken = default)
+    {
+        var unidades = await _repository.GetUnidades(cancellationToken);
+
+        return new UnidadesResponse
+        {
+            Unidades = unidades.Select(unidad => new UnidadItem
+            {
+                Id = unidad.Id,
+                Unidad = unidad.Nombre,
+                Ramo = unidad.Ramo,
+                ZE = unidad.ZE
+            }).ToList()
+        };
+    }
+
+    public async Task<CatalogOperationResponse> CreatePlaza(
+        PlazaRequest solicitada, CancellationToken cancellationToken = default)
+    {
+        var clave = Homologar(solicitada.ClavePlaza);
+        var invalido = await ValidarPlaza(0, clave, solicitada, cancellationToken);
+        if (invalido is not null) return invalido;
+
+        var plaza = new Plaza
+        {
+            ClavePlaza = clave,
+            PuestoId = solicitada.PuestoId!.Value,
+            AreaId = solicitada.AreaId,
+            TipoContratacionId = solicitada.TipoContratacionId!.Value,
+            TipoPlazaId = solicitada.TipoPlazaId,
+            UnidadId = solicitada.UnidadId!.Value,
+            DenominacionPuesto = TextoOpcional(solicitada.DenominacionPuesto),
+            CantidadPlazaHora = solicitada.CantidadPlazaHora,
+            Ocupabilidad = solicitada.Ocupabilidad,
+            FechaVacancia = solicitada.FechaVacancia,
+            CodigoSHCP = TextoOpcional(solicitada.CodigoSHCP),
+            CodigoFederalPuesto = TextoOpcional(solicitada.CodigoFederalPuesto),
+            ClavePresupuestalActual = TextoOpcional(solicitada.ClavePresupuestalActual)
+        };
+
+        await _repository.AddPlaza(plaza, cancellationToken);
+        return Resultado(true, "success", $"Plaza {clave} registrada.");
+    }
+
+    public async Task<CatalogOperationResponse> UpdatePlaza(
+        int id, PlazaRequest solicitada, CancellationToken cancellationToken = default)
+    {
+        var plaza = await _repository.FindPlaza(id, cancellationToken);
+        if (plaza is null)
+            return Resultado(false, "not_found", "La plaza indicada no existe.");
+
+        var clave = Homologar(solicitada.ClavePlaza);
+        var invalido = await ValidarPlaza(id, clave, solicitada, cancellationToken);
+        if (invalido is not null) return invalido;
+
+        plaza.ClavePlaza = clave;
+        plaza.PuestoId = solicitada.PuestoId!.Value;
+        plaza.AreaId = solicitada.AreaId;
+        plaza.TipoContratacionId = solicitada.TipoContratacionId!.Value;
+        plaza.TipoPlazaId = solicitada.TipoPlazaId;
+        plaza.UnidadId = solicitada.UnidadId!.Value;
+        plaza.DenominacionPuesto = TextoOpcional(solicitada.DenominacionPuesto);
+        plaza.CantidadPlazaHora = solicitada.CantidadPlazaHora;
+        plaza.Ocupabilidad = solicitada.Ocupabilidad;
+        plaza.FechaVacancia = solicitada.FechaVacancia;
+        plaza.CodigoSHCP = TextoOpcional(solicitada.CodigoSHCP);
+        plaza.CodigoFederalPuesto = TextoOpcional(solicitada.CodigoFederalPuesto);
+        plaza.ClavePresupuestalActual = TextoOpcional(solicitada.ClavePresupuestalActual);
+
+        await _repository.SaveChanges(cancellationToken);
+        return Resultado(true, "success", $"Plaza {clave} actualizada.");
+    }
+
+    public async Task<CatalogOperationResponse> DeletePlaza(
+        int id, CancellationToken cancellationToken = default)
+    {
+        var plaza = await _repository.FindPlaza(id, cancellationToken);
+        if (plaza is null)
+            return Resultado(false, "not_found", "La plaza indicada no existe.");
+
+        var empleados = await _repository.ContarEmpleadosDePlaza(id, cancellationToken);
+        if (empleados > 0)
+            return Resultado(false, "conflict",
+                $"No se puede eliminar: {empleados} empleado(s) estan asignados a esta plaza.");
+
+        var registros = await _repository.ContarRegistrosCodFedDePlaza(id, cancellationToken);
+        if (registros > 0)
+            return Resultado(false, "conflict",
+                $"No se puede eliminar: la plaza tiene {registros} registro(s) de codigo federal.");
+
+        await _repository.DeletePlaza(plaza, cancellationToken);
+        return Resultado(true, "success", $"Plaza {plaza.ClavePlaza} eliminada.");
+    }
+
+    private async Task<CatalogOperationResponse?> ValidarPlaza(
+        int id, string clave, PlazaRequest solicitada, CancellationToken cancellationToken)
+    {
+        if (clave.Length == 0)
+            return Resultado(false, "invalid", "La clave de plaza es obligatoria.");
+
+        if (clave.Length > LargoMaximoClavePlaza)
+            return Resultado(false, "invalid", $"La clave de plaza excede {LargoMaximoClavePlaza} caracteres.");
+
+        if (!solicitada.PuestoId.HasValue)
+            return Resultado(false, "invalid", "El puesto es obligatorio.");
+
+        if (!solicitada.TipoContratacionId.HasValue)
+            return Resultado(false, "invalid", "El tipo de contratacion es obligatorio.");
+
+        if (!solicitada.UnidadId.HasValue)
+            return Resultado(false, "invalid", "La unidad es obligatoria.");
+
+        var denominacion = Homologar(solicitada.DenominacionPuesto);
+        if (denominacion.Length > LargoMaximoDenominacion)
+            return Resultado(false, "invalid", $"La denominacion excede {LargoMaximoDenominacion} caracteres.");
+
+        if (Homologar(solicitada.CodigoSHCP).Length > LargoMaximoCodigoSHCP)
+            return Resultado(false, "invalid", $"El codigo SHCP excede {LargoMaximoCodigoSHCP} caracteres.");
+
+        if (Homologar(solicitada.CodigoFederalPuesto).Length > LargoMaximoCodigoFederal)
+            return Resultado(false, "invalid", $"El codigo federal excede {LargoMaximoCodigoFederal} caracteres.");
+
+        if (Homologar(solicitada.ClavePresupuestalActual).Length > LargoMaximoClavePresupuestal)
+            return Resultado(false, "invalid",
+                $"La clave presupuestal excede {LargoMaximoClavePresupuestal} caracteres.");
+
+        if (solicitada.CantidadPlazaHora.HasValue && solicitada.CantidadPlazaHora.Value < 0)
+            return Resultado(false, "invalid", "La cantidad de plaza u hora no puede ser negativa.");
+
+        if (!await _repository.ExistePuesto(solicitada.PuestoId.Value, cancellationToken))
+            return Resultado(false, "invalid", "El puesto indicado no existe.");
+
+        if (!await _repository.ExisteTipoContratacion(solicitada.TipoContratacionId.Value, cancellationToken))
+            return Resultado(false, "invalid", "El tipo de contratacion indicado no existe.");
+
+        if (!await _repository.ExisteUnidad(solicitada.UnidadId.Value, cancellationToken))
+            return Resultado(false, "invalid", "La unidad indicada no existe.");
+
+        if (solicitada.AreaId.HasValue &&
+            !await _repository.ExisteArea(solicitada.AreaId.Value, cancellationToken))
+            return Resultado(false, "invalid", "El area indicada no existe.");
+
+        if (solicitada.TipoPlazaId.HasValue &&
+            !await _repository.ExisteTipoPlaza(solicitada.TipoPlazaId.Value, cancellationToken))
+            return Resultado(false, "invalid", "El tipo de plaza indicado no existe.");
+
+        if (await _repository.ExisteOtraPlazaConClave(id, clave, cancellationToken))
+            return Resultado(false, "conflict", "Ya existe otra plaza con esa clave.");
+
+        return null;
+    }
+
+    private static string? TextoOpcional(string? valor)
+    {
+        var limpio = Homologar(valor);
+        return limpio.Length > 0 ? limpio : null;
     }
 
     private static CatalogOperationResponse Resultado(bool success, string code, string message) =>

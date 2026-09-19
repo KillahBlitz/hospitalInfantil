@@ -1,4 +1,5 @@
 using Backend.Data;
+using Backend.Models.Request.HumanResources;
 using Backend.Models.Schemas.HumanResources;
 using Microsoft.EntityFrameworkCore;
 
@@ -131,6 +132,127 @@ public class HumanResourcesRepository
     public async Task DeletePuesto(Puesto puesto, CancellationToken cancellationToken = default)
     {
         _context.Puestos.Remove(puesto);
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<List<TipoContratacion>> GetTiposContratacion(CancellationToken cancellationToken = default)
+    {
+        return await _context.TiposContratacion
+            .AsNoTracking()
+            .OrderBy(t => t.Descripcion)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<(int Total, List<Plaza> Plazas)> GetPlazasPaginadas(
+        PlazaQueryRequest filtros, int pagina, int tamano, CancellationToken cancellationToken = default)
+    {
+        var consulta = _context.Plazas.AsNoTracking();
+
+        if (filtros.AreaId.HasValue)
+            consulta = consulta.Where(p => p.AreaId == filtros.AreaId.Value);
+
+        if (filtros.PuestoId.HasValue)
+            consulta = consulta.Where(p => p.PuestoId == filtros.PuestoId.Value);
+
+        if (filtros.TipoContratacionId.HasValue)
+            consulta = consulta.Where(p => p.TipoContratacionId == filtros.TipoContratacionId.Value);
+
+        if (filtros.Ocupabilidad.HasValue)
+            consulta = consulta.Where(p => p.Ocupabilidad == filtros.Ocupabilidad.Value);
+
+        if (filtros.FechaVacancia.HasValue)
+            consulta = consulta.Where(p => p.FechaVacancia == filtros.FechaVacancia.Value);
+
+        var texto = (filtros.Texto ?? string.Empty).Trim();
+        if (texto.Length > 0)
+        {
+            consulta = consulta.Where(p =>
+                p.ClavePlaza.Contains(texto) ||
+                p.Puesto.CodigoPuesto.Contains(texto) ||
+                p.Puesto.Descripcion.Contains(texto) ||
+                (p.DenominacionPuesto != null && p.DenominacionPuesto.Contains(texto)) ||
+                (p.Area != null && p.Area.Descripcion.Contains(texto)) ||
+                (p.CodigoFederalPuesto != null && p.CodigoFederalPuesto.Contains(texto)) ||
+                (p.ClavePresupuestalActual != null && p.ClavePresupuestalActual.Contains(texto)));
+        }
+
+        var total = await consulta.CountAsync(cancellationToken);
+
+        var plazas = await consulta
+            .Include(p => p.Puesto)
+            .Include(p => p.Area)
+            .Include(p => p.TipoContratacion)
+            .Include(p => p.TipoPlaza)
+            .Include(p => p.Unidad)
+            .OrderBy(p => p.ClavePlaza.Length)
+            .ThenBy(p => p.ClavePlaza)
+            .Skip((pagina - 1) * tamano)
+            .Take(tamano)
+            .ToListAsync(cancellationToken);
+
+        return (total, plazas);
+    }
+
+    public async Task<List<Unidad>> GetUnidades(CancellationToken cancellationToken = default)
+    {
+        return await _context.Unidades
+            .AsNoTracking()
+            .OrderBy(u => u.Nombre)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<Plaza?> FindPlaza(int id, CancellationToken cancellationToken = default)
+    {
+        return await _context.Plazas.FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+    }
+
+    public async Task<bool> ExisteOtraPlazaConClave(
+        int id, string clave, CancellationToken cancellationToken = default)
+    {
+        return await _context.Plazas
+            .AsNoTracking()
+            .AnyAsync(p => p.Id != id && p.ClavePlaza == clave, cancellationToken);
+    }
+
+    public async Task<bool> ExistePuesto(int id, CancellationToken cancellationToken = default) =>
+        await _context.Puestos.AsNoTracking().AnyAsync(p => p.Id == id, cancellationToken);
+
+    public async Task<bool> ExisteArea(int id, CancellationToken cancellationToken = default) =>
+        await _context.Areas.AsNoTracking().AnyAsync(a => a.Id == id, cancellationToken);
+
+    public async Task<bool> ExisteTipoContratacion(int id, CancellationToken cancellationToken = default) =>
+        await _context.TiposContratacion.AsNoTracking().AnyAsync(t => t.Id == id, cancellationToken);
+
+    public async Task<bool> ExisteTipoPlaza(int id, CancellationToken cancellationToken = default) =>
+        await _context.TiposPlaza.AsNoTracking().AnyAsync(t => t.Id == id, cancellationToken);
+
+    public async Task<bool> ExisteUnidad(int id, CancellationToken cancellationToken = default) =>
+        await _context.Unidades.AsNoTracking().AnyAsync(u => u.Id == id, cancellationToken);
+
+    public async Task<Plaza> AddPlaza(Plaza plaza, CancellationToken cancellationToken = default)
+    {
+        await _context.Plazas.AddAsync(plaza, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
+        return plaza;
+    }
+
+    public async Task<int> ContarEmpleadosDePlaza(int id, CancellationToken cancellationToken = default)
+    {
+        return await _context.Empleados
+            .AsNoTracking()
+            .CountAsync(e => e.PlazaId == id, cancellationToken);
+    }
+
+    public async Task<int> ContarRegistrosCodFedDePlaza(int id, CancellationToken cancellationToken = default)
+    {
+        return await _context.RegistroCodFedPuestos
+            .AsNoTracking()
+            .CountAsync(r => r.PlazaId == id, cancellationToken);
+    }
+
+    public async Task DeletePlaza(Plaza plaza, CancellationToken cancellationToken = default)
+    {
+        _context.Plazas.Remove(plaza);
         await _context.SaveChangesAsync(cancellationToken);
     }
 
