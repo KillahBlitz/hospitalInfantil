@@ -103,6 +103,92 @@
   color: var(--color-secondary);
 }
 
+/* Arbol de areas: cada area despliega sus modulos */
+.sidebar-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-group-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  width: 100%;
+  padding: 0.7rem var(--spacing-md);
+  border: none;
+  border-radius: var(--border-radius-md);
+  background: transparent;
+  color: var(--color-white);
+  font-family: var(--font-family);
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sidebar-group-toggle:hover {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+.sidebar-group-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-chevron {
+  flex-shrink: 0;
+  font-size: 1rem;
+  line-height: 1;
+  transition: transform 0.15s ease;
+}
+
+.sidebar-chevron.is-open {
+  transform: rotate(180deg);
+}
+
+.sidebar-sublist {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-bottom: var(--spacing-xs);
+}
+
+.sidebar-subitem {
+  display: block;
+  width: 100%;
+  padding: 0.55rem var(--spacing-md) 0.55rem var(--spacing-xl);
+  border: none;
+  border-left: 3px solid transparent;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.85);
+  font-family: var(--font-family);
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sidebar-subitem:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--color-white);
+}
+
+.sidebar-subitem.is-active {
+  background-color: rgba(255, 255, 255, 0.16);
+  border-left-color: var(--color-gold);
+  color: var(--color-white);
+  font-weight: 700;
+}
+
+.sidebar-subempty {
+  padding: 0.55rem var(--spacing-md) 0.55rem var(--spacing-xl);
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
 .sidebar-empty,
 .sidebar-loading {
   padding: var(--spacing-md);

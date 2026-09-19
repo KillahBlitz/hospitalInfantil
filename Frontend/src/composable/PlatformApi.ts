@@ -1,4 +1,5 @@
 import type { UsersResponse, RegisteredUsersResponse, DeactivateUserResponse } from "../interfaces/response/Platform";
+import { throwSessionExpired } from "./Session";
 
 const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/Platform`;
 
@@ -20,7 +21,7 @@ export async function getRegisteredUsers(signal?: AbortSignal): Promise<Register
 
 export async function deactivateUser(userId: number, accessToken?: string): Promise<DeactivateUserResponse> {
     if (!accessToken) {
-        throw new Error('Inicia sesión nuevamente para habilitar la baja de usuarios.');
+        throwSessionExpired();
     }
 
     const response = await fetch(`${API_BASE_URL}/Users/${userId}/deactivate`, {
@@ -28,7 +29,7 @@ export async function deactivateUser(userId: number, accessToken?: string): Prom
         headers: { Authorization: `Bearer ${accessToken}` },
     });
     if (response.status === 401) {
-        throw new Error('Tu sesión expiró o no es válida. Inicia sesión nuevamente.');
+        throwSessionExpired();
     }
     const result = await response.json().catch(() => null);
     if (!response.ok || !result?.success) {
@@ -39,7 +40,7 @@ export async function deactivateUser(userId: number, accessToken?: string): Prom
 
 export async function updateUserRequestComment(userId: number, comment: string | undefined, accessToken?: string): Promise<{ success: boolean; message: string }> {
     if (!accessToken) {
-        throw new Error('Inicia sesión nuevamente para habilitar la actualización de comentarios.');
+        throwSessionExpired();
     }
 
     const response = await fetch(`${API_BASE_URL}/UserRequest/${userId}/comment`, {
@@ -51,7 +52,7 @@ export async function updateUserRequestComment(userId: number, comment: string |
         body: JSON.stringify({ comentario: comment })
     });
     if (response.status === 401) {
-        throw new Error('Tu sesión expiró o no es válida. Inicia sesión nuevamente.');
+        throwSessionExpired();
     }
     const result = await response.json().catch(() => null);
     if (!response.ok || !result?.success) {
@@ -67,7 +68,7 @@ export async function approveUser(
     accessToken?: string
 ): Promise<{ success: boolean; message: string }> {
     if (!accessToken) {
-        throw new Error('Inicia sesión nuevamente para aprobar usuarios.');
+        throwSessionExpired();
     }
 
     const response = await fetch(`${API_BASE_URL}/Users/Approve`, {
@@ -80,7 +81,7 @@ export async function approveUser(
     });
 
     if (response.status === 401) {
-        throw new Error('Tu sesión expiró o no es válida. Inicia sesión nuevamente.');
+        throwSessionExpired();
     }
     
     const result = await response.json().catch(() => null);
@@ -95,7 +96,7 @@ export async function getUserPermissions(
     accessToken?: string
 ): Promise<any> {
     if (!accessToken) {
-        throw new Error('Inicia sesión nuevamente.');
+        throwSessionExpired();
     }
 
     const response = await fetch(`${API_BASE_URL}/Users/${userId}/Permissions`, {
@@ -107,7 +108,7 @@ export async function getUserPermissions(
     });
 
     if (response.status === 401) {
-        throw new Error('Tu sesión expiró o no es válida. Inicia sesión nuevamente.');
+        throwSessionExpired();
     }
     
     const result = await response.json().catch(() => null);
@@ -124,7 +125,7 @@ export async function updateUserPermissions(
     accessToken?: string
 ): Promise<{ success: boolean; message: string }> {
     if (!accessToken) {
-        throw new Error('Inicia sesión nuevamente.');
+        throwSessionExpired();
     }
 
     const response = await fetch(`${API_BASE_URL}/Users/Permissions`, {
@@ -137,7 +138,7 @@ export async function updateUserPermissions(
     });
 
     if (response.status === 401) {
-        throw new Error('Tu sesión expiró o no es válida. Inicia sesión nuevamente.');
+        throwSessionExpired();
     }
     
     const result = await response.json().catch(() => null);

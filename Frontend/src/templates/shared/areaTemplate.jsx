@@ -1,7 +1,9 @@
-import { useMemo, useState } from 'react';
 import AccountsModule from '../platform/accounts/accountsModule.jsx';
 import PlacesModule from '../humanResources/places/placesModules.jsx';
 import PermitsModule from '../platform/permits/permitsModule.jsx';
+import EmployeesModule from '../humanResources/employees/employeesModule.jsx';
+import PayrollModule from '../humanResources/payroll/payrollModule.jsx';
+import FomopeModule from '../humanResources/fomope/fomopeModule.jsx';
 import './areaTemplate.css';
 
 // Distribucion de modulos por id del catalogo.
@@ -9,9 +11,12 @@ const MODULE_REGISTRY = {
     1: AccountsModule,
     2: PlacesModule,
     3: PermitsModule,
+    4: EmployeesModule,
+    5: PayrollModule,
+    6: FomopeModule,
 };
 
-function GetAreaModules(user, catalogs, areaKey) {
+export function GetAreaModules(user, catalogs, areaKey) {
     const accesos = user?.accesos ?? [];
     const modulesCatalog = catalogs?.modules ?? {};
     const modules = [];
@@ -38,54 +43,35 @@ function GetAreaModules(user, catalogs, areaKey) {
     return modules;
 }
 
-function AreaTemplate({ user, catalogs, areaKey, title }) {
-    const modules = useMemo(
-        () => GetAreaModules(user, catalogs, areaKey),
-        [user, catalogs, areaKey]
-    );
-
-    const [selectedId, setSelectedId] = useState(modules[0]?.id ?? null);
-
-    const selectedModule = modules.find((m) => m.id === selectedId) ?? null;
+function AreaTemplate({ user, catalogs, areaKey, selectedModuleId }) {
+    const modules = GetAreaModules(user, catalogs, areaKey);
+    const selectedModule = modules.find((m) => m.id === selectedModuleId) ?? null;
     const ModuleComponent = selectedModule ? MODULE_REGISTRY[selectedModule.id] : null;
+
+    if (!selectedModule) {
+        return (
+            <div className="area-template">
+                <p className="content-placeholder">
+                    {modules.length === 0
+                        ? 'No tienes modulos asignados en esta area.'
+                        : 'Selecciona un modulo en el menu lateral.'}
+                </p>
+            </div>
+        );
+    }
 
     return (
         <div className="area-template">
-            <div className="area-tabs" role="tablist">
-                {modules.length === 0 ? (
-                    <span className="area-tabs-empty">Sin modulos disponibles</span>
-                ) : (
-                    modules.map((module) => (
-                        <button
-                            key={module.id}
-                            type="button"
-                            role="tab"
-                            aria-selected={selectedId === module.id}
-                            className={`area-tab${selectedId === module.id ? ' is-active' : ''}`}
-                            onClick={() => setSelectedId(module.id)}
-                        >
-                            {module.name}
-                        </button>
-                    ))
-                )}
-            </div>
-
-            <div className="area-content">
-                {!selectedModule ? (
+            {ModuleComponent ? (
+                <ModuleComponent user={user} catalogs={catalogs} module={selectedModule} />
+            ) : (
+                <>
+                    <h2 className="area-module-title">{selectedModule.name}</h2>
                     <p className="content-placeholder">
-                        No tienes modulos asignados en esta area.
+                        Este modulo aun no tiene contenido asignado.
                     </p>
-                ) : ModuleComponent ? (
-                    <ModuleComponent user={user} catalogs={catalogs} module={selectedModule} />
-                ) : (
-                    <>
-                        <h2 className="area-module-title">{selectedModule.name}</h2>
-                        <p className="content-placeholder">
-                            Este modulo aun no tiene contenido asignado.
-                        </p>
-                    </>
-                )}
-            </div>
+                </>
+            )}
         </div>
     );
 }

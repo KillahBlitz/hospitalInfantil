@@ -6,7 +6,7 @@ updated: 2026-09-18
 
 # Arranque, DI y configuración (`Program.cs`)
 
-`Backend/Program.cs` tiene **68 líneas** y usa *top-level statements* (sin clase `Startup`). Es el único punto de composición del sistema. Contexto general en [[be-architecture]].
+`Backend/Program.cs` tiene **77 líneas** y usa *top-level statements* (sin clase `Startup`). Es el único punto de composición del sistema. Contexto general en [[be-architecture]].
 
 ## 1. Secuencia de arranque verificada
 
@@ -20,14 +20,14 @@ updated: 2026-09-18
 | 6 | `Program.cs:34` | `AddAuthorization()` — sin políticas ni *fallback policy* | |
 | 7 | `Program.cs:35` | `AddScoped<SessionTokenService>()` | |
 | 8 | `Program.cs:37-39` | `AddControllers()`, `AddSwaggerGen()`, `AddOpenApi()` | Dos generadores de documento a la vez |
-| 9 | `Program.cs:41-43` | `AddScoped<UserAccessRepository>()`, `AddScoped<AuthHandler>()`, `AddScoped<PlatformHandler>()` | |
-| 10 | `Program.cs:45-50` | `AddDbContext<UserAccessDbContext>` con `UseSqlServer(GetConnectionString("HospitalInfantilDb"))` | Lifetime `Scoped` implícito |
-| 11 | `Program.cs:52-57` | `AddDbContext<HumanResourcesDbContext>` con **la misma** cadena de conexión | Dos contextos sobre la misma base, distinto esquema. Ver [[be-dbcontext-entities]] |
-| 12 | `Program.cs:59` | `builder.Build()` | |
-| 13 | `Program.cs:61-67` | `MapOpenApi()`, `UseSwagger()`, `UseSwaggerUI()` — **el `if (app.Environment.IsDevelopment())` está comentado** | Ver §5 |
-| 14 | `Program.cs:70` | `UseCors(FrontendCorsPolicy)` | |
-| 15 | `Program.cs:72-73` | `UseAuthentication()`, `UseAuthorization()` | |
-| 16 | `Program.cs:74-75` | `MapControllers()`, `Run()` | |
+| 9 | `Program.cs:41-45` | `AddScoped` de `UserAccessRepository`, `AuthHandler`, `PlatformHandler`, `HumanResourcesRepository` y `HumanResourcesHandler` | |
+| 10 | `Program.cs:47-52` | `AddDbContext<UserAccessDbContext>` con `UseSqlServer(GetConnectionString("HospitalInfantilDb"))` | Lifetime `Scoped` implícito |
+| 11 | `Program.cs:54-59` | `AddDbContext<HumanResourcesDbContext>` con **la misma** cadena de conexión | Dos contextos sobre la misma base, distinto esquema. Ver [[be-dbcontext-entities]] |
+| 12 | `Program.cs:61` | `builder.Build()` | |
+| 13 | `Program.cs:65-68` | `MapOpenApi()`, `UseSwagger()`, `UseSwaggerUI()` — **el `if (app.Environment.IsDevelopment())` está comentado** | Ver §5 |
+| 14 | `Program.cs:72` | `UseCors(FrontendCorsPolicy)` | |
+| 15 | `Program.cs:74-75` | `UseAuthentication()`, `UseAuthorization()` | |
+| 16 | `Program.cs:76-77` | `MapControllers()`, `Run()` | |
 
 **[verificado]** Lo que **no** ocurre en el arranque: no hay `Database.Migrate()`, `EnsureCreated()`, *seed* de catálogos, `UseHttpsRedirection()`, `UseHsts()`, `AddHealthChecks()`, `UseExceptionHandler()`, `AddProblemDetails()`, `AddRateLimiter()`, `AddOutputCache()`, logging estructurado propio ni `AddHttpContextAccessor()`.
 
@@ -39,8 +39,10 @@ updated: 2026-09-18
 | `UserAccessRepository` | **Scoped** | `Program.cs:41` | `AuthHandler`, `PlatformHandler` | ninguna |
 | `AuthHandler` | **Scoped** | `Program.cs:42` | `AuthController` | ninguna |
 | `PlatformHandler` | **Scoped** | `Program.cs:43` | `PlatformController` | ninguna |
-| `UserAccessDbContext` | **Scoped** (por defecto de `AddDbContext`) | `Program.cs:45` | `UserAccessRepository` | ninguna |
-| `HumanResourcesDbContext` | **Scoped** (por defecto de `AddDbContext`) | `Program.cs:52` | **nadie todavía** | ninguna |
+| `HumanResourcesRepository` | **Scoped** | `Program.cs:44` | `HumanResourcesHandler` | ninguna |
+| `HumanResourcesHandler` | **Scoped** | `Program.cs:45` | `HumanResourcesController` | ninguna |
+| `UserAccessDbContext` | **Scoped** (por defecto de `AddDbContext`) | `Program.cs:47` | `UserAccessRepository` | ninguna |
+| `HumanResourcesDbContext` | **Scoped** (por defecto de `AddDbContext`) | `Program.cs:54` | `HumanResourcesRepository` | ninguna |
 | `ILogger<PlatformController>` | Singleton (del framework) | implícito | `PlatformController` | `ILogger<T>` |
 | `IOptionsMonitor<BearerTokenOptions>` | Singleton (del framework) | implícito por `AddBearerToken` | `SessionTokenService` | sí |
 
@@ -69,7 +71,7 @@ flowchart LR
 
 | Clave de configuración | Nombre como variable de entorno | Consumidor | Obligatoria |
 | --- | --- | --- | --- |
-| `ConnectionStrings:HospitalInfantilDb` | `ConnectionStrings__HospitalInfantilDb` | `Program.cs:48` → EF Core | **Sí.** Sin ella, `UseSqlServer(null)` provoca fallo al abrir la primera conexión |
+| `ConnectionStrings:HospitalInfantilDb` | `ConnectionStrings__HospitalInfantilDb` | `Program.cs:50` y `Program.cs:57` → los dos `DbContext` | **Sí.** Sin ella, `UseSqlServer(null)` provoca fallo al abrir la primera conexión |
 | `Cors:AllowedOrigins` (array) | `Cors__AllowedOrigins__0`, `Cors__AllowedOrigins__1`, … | `Program.cs:16-19` | No, pero su ausencia rompe el navegador (§4) |
 | `ASPNETCORE_ENVIRONMENT` | `ASPNETCORE_ENVIRONMENT` | framework | No |
 | `Logging:LogLevel:*` | — | `appsettings.json:2-7` | No |

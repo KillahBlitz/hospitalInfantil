@@ -65,9 +65,9 @@ Hechos verificados en el backend, relevantes para el frontend:
 
 | Situación | Qué pasa |
 | --- | --- |
-| Sesión con más de 8 h | Los guards **siguen permitiendo `/menu`** (solo miran que la clave exista), la navegación y los listados funcionan (los GET no exigen token), pero **cualquier mutación devuelve 401** y el cliente muestra "Tu sesión expiró o no es válida. Inicia sesión nuevamente." |
-| No hay reacción automática al 401 | No se borra `localStorage`, no se redirige a login. El usuario debe cerrar sesión a mano |
-| `localStorage` de una sesión previa a la introducción del token | `accessToken` es `undefined` → el cliente lanza antes de la petición con "Inicia sesión nuevamente para habilitar la baja de usuarios." ([[fe-api-clients]]) |
+| Sesión con más de 8 h | Los guards **siguen permitiendo `/menu`** (solo miran que la clave exista) y los listados siguen cargando, porque los GET de `/Platform` no exigen token. La primera **mutación devuelve 401** y ahí se detecta la expiración |
+| Reacción al 401 | **Desde el 2026-09-19 el 401 cierra la sesión.** `throwSessionExpired()` borra `localStorage.user`, deja un aviso en `sessionStorage` y hace `window.location.replace('/')`; el login lo consume y lo muestra. Ya no hay que cerrar sesión a mano |
+| `localStorage` de una sesión previa a la introducción del token | `accessToken` es `undefined` → el cliente cierra la sesión por la misma vía, sin llegar a hacer la petición |
 | Cerrar sesión | Solo borra la clave local; **el token sigue válido en el servidor** hasta expirar. No hay revocación ([[be-auth-session]]) |
 
 ## 4. Qué falta
@@ -75,8 +75,8 @@ Hechos verificados en el backend, relevantes para el frontend:
 | Falta | Impacto |
 | --- | --- |
 | **Refresco de permisos.** `accesos` se congela en el login | Un cambio hecho desde [[fe-module-permits]] no llega a la sesión abierta del usuario afectado. Debe cerrar y volver a iniciar sesión |
-| **Detección de expiración en el cliente.** El token es opaco y no se guarda `ExpiresUtc` | No se puede avisar antes de fallar ni renovar proactivamente |
-| **Manejo global del 401.** No hay interceptor | Cada llamador repite el mismo mensaje; ninguno cierra la sesión |
+| **Detección de expiración en el cliente.** El token es opaco y no se guarda `ExpiresUtc` | No se puede avisar antes de fallar ni renovar proactivamente: la expiración se descubre al recibir el primer 401 |
+| **Interceptor de `fetch`.** El cierre por 401 está resuelto, pero cada función de `PlatformApi.ts` lo invoca por separado | Un cliente nuevo que olvide comprobar el 401 vuelve a dejar la sesión zombi. Ver [[fe-api-clients]] |
 | **Validación de la forma del objeto.** No se comprueba que existan `id`/`accessToken` al arrancar `/menu` | `JSON.parse` puede lanzar y dejar la pantalla en "Cargando..." ([[fe-findings]]) |
 | **Endpoint de perfil / rehidratación.** No hay `/me` | Tras recargar, el estado se reconstruye desde `localStorage`, no desde el servidor |
 | **Revocación en logout.** No hay endpoint | Un token filtrado sigue sirviendo hasta 8 h |
@@ -102,9 +102,9 @@ stateDiagram-v2
 
     ConSesion --> ConSesion: navegar áreas/módulos (solo estado de React)
     ConSesion --> ConSesion: mutaciones con Bearer OK
-    ConSesion --> TokenVencido: transcurren 8 h
-    TokenVencido --> TokenVencido: los guards siguen permitiendo /menu;\nlecturas OK; mutaciones 401
-    TokenVencido --> SinSesion: el usuario cierra sesión a mano
+    ConSesion --> TokenVencido: transcurren 8 h o se reinicia el backend
+    TokenVencido --> TokenVencido: los guards siguen permitiendo /menu;\nlecturas OK hasta intentar una mutación
+    TokenVencido --> SinSesion: primera mutación devuelve 401\nthrowSessionExpired: removeItem + replace('/')
     ConSesion --> SinSesion: "Cerrar sesion" (removeItem + location.href='/')
 
     note right of TokenVencido

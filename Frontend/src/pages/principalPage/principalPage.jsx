@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { GetAreas, GetAccess, GetModulesCatalog } from '../../composable/AuthApi.ts';
+import { GetAreaModules } from '../../templates/shared/areaTemplate.jsx';
 import Start from '../../templates/start/start.jsx';
 import Platform from '../../templates/platform/platform.jsx';
 import HumanResources from '../../templates/humanResources/humanResources.jsx';
@@ -28,17 +29,6 @@ function ResolveModule(key) {
     };
 }
 
-function BuildNavModules(userData) {
-    const modules = [ResolveModule(HOME_KEY)];
-    const accesos = userData?.accesos ?? [];
-    accesos.forEach((acceso) => {
-        Object.keys(acceso).forEach((key) => {
-            modules.push(ResolveModule(key));
-        });
-    });
-    return modules;
-}
-
 function ProcessModules(userData) {
     const modules = [];
     const accesos = userData?.accesos ?? [];
@@ -48,6 +38,13 @@ function ProcessModules(userData) {
         });
     });
     return modules;
+}
+
+function BuildNavAreas(userData, catalogs) {
+    return ProcessModules(userData).map((key) => ({
+        ...ResolveModule(key),
+        modules: GetAreaModules(userData, catalogs, key),
+    }));
 }
 
 const ModulesCatalog = async (areas, areasCatalog) => {
@@ -79,8 +76,9 @@ function GetInitials(nombre) {
 
 function PrincipalPage() {
     const [user, setUser] = useState(null);
-    const [navModules, setNavModules] = useState([ResolveModule(HOME_KEY)]);
-    const [activeModule, setActiveModule] = useState(HOME_KEY);
+    const [activeAreaKey, setActiveAreaKey] = useState(HOME_KEY);
+    const [activeModuleId, setActiveModuleId] = useState(null);
+    const [expandedAreas, setExpandedAreas] = useState([]);
     const [catalogs, setCatalogs] = useState({ areas: null, access: null, modules: null });
     const [loading, setLoading] = useState(true);
     const yaCargado = useRef(false);
@@ -92,7 +90,6 @@ function PrincipalPage() {
         const cargarCatalogos = async () => {
             const userData = JSON.parse(localStorage.getItem('user'));
             setUser(userData);
-            setNavModules(BuildNavModules(userData));
 
             const areasResp = await GetAreas();
             const accessResp = await GetAccess();
@@ -110,13 +107,29 @@ function PrincipalPage() {
         cargarCatalogos();
     }, []);
 
+    const navAreas = useMemo(() => BuildNavAreas(user, catalogs), [user, catalogs]);
+
+    const home = ResolveModule(HOME_KEY);
+    const activeArea = activeAreaKey === HOME_KEY
+        ? home
+        : navAreas.find((area) => area.key === activeAreaKey);
+    const ActiveTemplate = activeArea?.component ?? null;
+
     const handleLogout = () => {
         localStorage.removeItem('user');
         window.location.href = '/';
     };
 
-    const active = navModules.find((m) => m.key === activeModule);
-    const ActiveTemplate = active?.component ?? null;
+    const toggleArea = (key) => {
+        setExpandedAreas((previo) =>
+            previo.includes(key) ? previo.filter((k) => k !== key) : [...previo, key]
+        );
+    };
+
+    const selectModule = (areaKey, moduleId) => {
+        setActiveAreaKey(areaKey);
+        setActiveModuleId(moduleId);
+    };
 
     return (
         <div className="principal-layout">
@@ -132,16 +145,55 @@ function PrincipalPage() {
                 <p className="sidebar-section-label">NAVEGADOR</p>
 
                 <nav className="sidebar-nav">
-                    {navModules.map((module) => (
-                        <button
-                            key={module.key}
-                            type="button"
-                            className={`sidebar-item${activeModule === module.key ? ' is-active' : ''}`}
-                            onClick={() => setActiveModule(module.key)}
-                        >
-                            {module.label}
-                        </button>
-                    ))}
+                    <button
+                        type="button"
+                        className={`sidebar-item${activeAreaKey === HOME_KEY ? ' is-active' : ''}`}
+                        onClick={() => selectModule(HOME_KEY, null)}
+                    >
+                        {home.label}
+                    </button>
+
+                    {navAreas.map((area) => {
+                        const abierta = expandedAreas.includes(area.key);
+                        return (
+                            <div key={area.key} className="sidebar-group">
+                                <button
+                                    type="button"
+                                    className="sidebar-group-toggle"
+                                    aria-expanded={abierta}
+                                    onClick={() => toggleArea(area.key)}
+                                >
+                                    <span className="sidebar-group-label">{area.label}</span>
+                                    <span className={`sidebar-chevron${abierta ? ' is-open' : ''}`} aria-hidden="true">
+                                        ⌄
+                                    </span>
+                                </button>
+
+                                {abierta && (
+                                    <div className="sidebar-sublist">
+                                        {area.modules.length === 0 ? (
+                                            <span className="sidebar-subempty">Sin modulos disponibles</span>
+                                        ) : (
+                                            area.modules.map((module) => (
+                                                <button
+                                                    key={module.id}
+                                                    type="button"
+                                                    className={`sidebar-subitem${
+                                                        activeAreaKey === area.key && activeModuleId === module.id
+                                                            ? ' is-active'
+                                                            : ''
+                                                    }`}
+                                                    onClick={() => selectModule(area.key, module.id)}
+                                                >
+                                                    {module.name ?? `Modulo ${module.id}`}
+                                                </button>
+                                            ))
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
                 </nav>
 
                 <button type="button" className="sidebar-logout" onClick={handleLogout}>
@@ -153,10 +205,14 @@ function PrincipalPage() {
                 {loading ? (
                     <p className="content-placeholder">Cargando...</p>
                 ) : ActiveTemplate ? (
-                    <ActiveTemplate user={user} catalogs={catalogs} />
+                    <ActiveTemplate
+                        user={user}
+                        catalogs={catalogs}
+                        selectedModuleId={activeModuleId}
+                    />
                 ) : (
                     <>
-                        <h1 className="content-title">{active?.label}</h1>
+                        <h1 className="content-title">{activeArea?.label}</h1>
                         <p className="content-placeholder">
                             Error al cargar el módulo. Por favor, contacte al administrador del sistema.
                         </p>

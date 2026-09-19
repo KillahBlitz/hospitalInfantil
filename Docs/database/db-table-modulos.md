@@ -37,22 +37,27 @@ No existe índice declarado sobre `AreaId` por separado. El índice compuesto `(
 
 **No existe ninguna escritura sobre esta tabla**: ni `INSERT`, ni `UPDATE`, ni `DELETE`. Como [[db-table-areas]], es un catálogo que solo se puebla manualmente en SQL.
 
-## Filas según el seed de `Init.sql`, y el desalineamiento con el frontend
+## Filas reales de la instancia conectada
 
-`DataBase/scripts/Init.sql:259-315` inserta cuatro módulos en lotes separados. Los `Id` se **deducen del orden de inserción** sobre `IDENTITY(1,1)`; el script no está versionado ([[db-scripts-and-migrations]]).
+Leídas de la base el **2026-09-19**, no deducidas del seed. Siete filas, todas `Activo = 1`:
 
-| `Id` probable | `Nombre` | Área | Componente que renderiza el frontend | ¿Correcto? |
-| --- | --- | --- | --- | --- |
-| 1 | `configuracion de cuentas` | plataforma | `AccountsModule` | **Sí** |
-| 2 | `Administrar Permisos` | plataforma | `PlacesModule` (plazas) | **No** |
-| 3 | `Complemento de Pago` | contabilidad | `PermitsModule` (permisos) | **No** |
-| 4 | `Administrar Plazas` | recursos humanos | ninguno → "sin contenido" | **No** |
+| `Id` | `Nombre` | Área | Componente en `MODULE_REGISTRY` |
+| --- | --- | --- | --- |
+| 1 | `configuracion de cuentas` | plataforma (1) | `AccountsModule` |
+| 2 | `Administrar Plazas` | recursos humanos (2) | `PlacesModule` |
+| 3 | `Administrar Permisos` | plataforma (1) | `PermitsModule` |
+| **4** | **`Administrar Empleados`** | recursos humanos (2) | `EmployeesModule` (andamio) |
+| **5** | **`Registrar Nominas`** | recursos humanos (2) | `PayrollModule` (andamio) |
+| **6** | **`Generar FOMOPE`** | recursos humanos (2) | `FomopeModule` (andamio) |
+| 1002 | `Complemento de Pago` | contabilidad (3) | ninguno → "sin contenido" |
 
-**Tres de los cuatro módulos abren el componente equivocado o ninguno.** La pestaña "Administrar Permisos" de Plataforma mostraría la vista de plazas, y la pestaña de plazas de Recursos Humanos aparecería vacía. El `MODULE_REGISTRY` parece haberse escrito contra un orden de catálogo distinto del que produce este script. Es el riesgo de esta nota materializado, no una hipótesis.
+**El `MODULE_REGISTRY` del frontend está alineado** para los ids 1 al 6; el único módulo sin componente es `1002`. La advertencia histórica de que «tres de los cuatro módulos abren el componente equivocado» venía de deducir los `Id` del orden de inserción de `DataBase/scripts/Init.sql:259-315`, y ese orden **no** es el de la instancia conectada. Queda como aviso sobre el método, no como defecto vigente.
 
-Dentro del problema hay una buena noticia: **`Id = 1` sí es `configuracion de cuentas` del área `plataforma`**, luego el literal `ModuloId == 1` de las comprobaciones de autorización apunta al módulo correcto.
+Los ids **4, 5 y 6** se insertaron con `SET IDENTITY_INSERT ON` para que el registro del frontend quedara legible. El `IDENTITY` sigue en **2001** —hay un hueco entre 6 y 1002 por un reseed anterior—, así que la próxima alta automática tomará 2002 sin colisionar con los ids forzados.
 
-Nótese también la inconsistencia de estilo en los nombres del seed: `configuracion de cuentas` en minúsculas sin acento, frente a `Administrar Permisos`, `Complemento de Pago` y `Administrar Plazas` en formato título. Esos nombres son los que el frontend muestra como etiqueta de pestaña.
+`Id = 1` es `configuracion de cuentas` del área `plataforma`, luego el literal `ModuloId == 1` de las comprobaciones de autorización apunta al módulo correcto.
+
+Nótese la inconsistencia de estilo en los nombres: `configuracion de cuentas` en minúsculas sin acento, frente al resto en formato título. Esos nombres son los que el frontend muestra como etiqueta de pestaña.
 
 `GetModulos` no valida que el usuario tenga acceso a las áreas que pide: recibe una lista de `AreaId` del cuerpo de la petición (`POST /Auth/modules`) y devuelve los módulos activos de esas áreas. El endpoint no lleva `[Authorize]` (`Backend/Controllers/AuthController.cs:76-77`), por lo que el catálogo completo de módulos es enumerable sin credenciales pasando cualquier lista de identificadores. Ver [[be-api-reference]] y [[db-findings]].
 
@@ -61,11 +66,14 @@ Nótese también la inconsistencia de estilo en los nombres del seed: `configura
 ### 1. En el frontend, elige el componente a renderizar
 
 ```javascript
-// Frontend/src/templates/shared/areaTemplate.jsx:8-12
+// Frontend/src/templates/shared/areaTemplate.jsx:11-18
 const MODULE_REGISTRY = {
     1: AccountsModule,
     2: PlacesModule,
     3: PermitsModule,
+    4: EmployeesModule,
+    5: PayrollModule,
+    6: FomopeModule,
 };
 ```
 

@@ -10,7 +10,7 @@ Volver al índice: [[db-index]]
 
 Las 13 tablas del dominio de recursos humanos viven en el esquema SQL **`recursos_humanos`** de la misma base que `acceso_usuario` (ver [[db-infrastructure]]). Tiene dos descripciones versionadas: el script `DataBase/scripts/RecursosHumanos.sql` y el mapeo EF de `Backend/Data/HumanResourcesDbContext.cs` con las 13 entidades de `Backend/Models/Schemas/HumanResources/`.
 
-**No tiene repositorio, handler ni endpoints.** El contexto está registrado en DI (`Program.cs:52-57`) y ningún servicio lo consume todavía. Detalle del mapeo en [[be-dbcontext-entities]].
+Desde el 2026-09-19 tiene también repositorio, handler y controller, pero **solo para los catálogos de áreas y puestos**: es el primer corte del módulo de administración de plazas. Ver [[be-api-reference]] y [[be-dbcontext-entities]].
 
 Hecho verificado — el script se ejecutó contra la instancia conectada el **2026-09-19** dentro de una transacción única, y las 13 tablas, 11 claves foráneas, 13 índices únicos y 1 restricción `CHECK` se confirmaron después consultando `sys.foreign_keys`, `sys.check_constraints`, `sys.indexes` e `INFORMATION_SCHEMA.COLUMNS`.
 
@@ -32,12 +32,12 @@ Los nombres de tabla que el diagrama ya traía en PascalCase se conservaron lite
 
 | Tabla SQL | Rol | Referencia a |
 | --- | --- | --- |
-| `Areas` | Catálogo de áreas orgánicas | — |
-| `Puestos` | Catálogo de puestos por área | `Areas` |
+| `Areas` | Catálogo de áreas orgánicas, con clave jerárquica | — |
+| `Puestos` | Catálogo de puestos, sin área | — |
 | `TiposContratacion` | Catálogo | — |
 | `TiposPlaza` | Catálogo | — |
 | `Unidad` | Catálogo de unidad, ramo y ZE | — |
-| `Plazas` | Plaza presupuestal | `Puestos`, `TiposContratacion`, `TiposPlaza`, `Unidad` |
+| `Plazas` | Plaza presupuestal | `Puestos`, `Areas`, `TiposContratacion`, `TiposPlaza`, `Unidad` |
 | `RegistroCodFedPuesto` | Histórico de código federal por plaza | `Plazas` |
 | `Empleados` | Persona empleada | `Plazas` |
 | `Comentarios` | Comentarios por empleado | `Empleados` |
@@ -46,7 +46,34 @@ Los nombres de tabla que el diagrama ya traía en PascalCase se conservaron lite
 | `CatalogoImpuestos` | Catálogo aislado, sin FK | — |
 | `Nominas` | Nómina quincenal por empleado | `Empleados`, `TiposNomina`, `RegimenSS` |
 
-> **`recursos_humanos.Areas` no es `acceso_usuario.Areas`.** Son dos catálogos independientes, sin FK entre ellos. El de `acceso_usuario` son las áreas de la plataforma web, cuyo `Nombre` es clave de navegación del frontend (`TEMPLATE_REGISTRY`); el de aquí son áreas orgánicas del hospital a las que pertenecen los puestos. Renombrar uno no afecta al otro.
+> **`recursos_humanos.Areas` no es `acceso_usuario.Areas`.** Son dos catálogos independientes, sin FK entre ellos. El de `acceso_usuario` son las áreas de la plataforma web, cuyo `Nombre` es clave de navegación del frontend (`TEMPLATE_REGISTRY`); el de aquí son áreas orgánicas del hospital a las que se adscriben las plazas. Renombrar uno no afecta al otro.
+
+## El área es atributo de la plaza, no del puesto
+
+El diagrama original colgaba `Puestos` de `Areas`. Los datos reales lo contradicen: el código de puesto `CFN3101773` («SUBDIRECTOR DE AREA») aparece con **12 denominaciones distintas** —Recursos Financieros, Recursos Humanos, Enseñanza, Mantenimiento, Asistencia Quirúrgica, entre otras— y `CFM2101041` figura como Titular del OIC, Director Médico y Director de Administración. Un mismo puesto tabular vive en muchas áreas.
+
+Por eso `Puestos.AreaId` se eliminó y el área se movió a `Plazas.AreaId`, nullable. `Puestos` quedó como catálogo puro de 96 filas —código, descripción tabular, nivel salarial— y la **denominación** del cargo, que es la que varía por adscripción, vive en `Plazas.DenominacionPuesto`.
+
+## La clave de área codifica jerarquía
+
+`ClaveArea` tiene la forma `NBG-01-04-10-51-00`: institución, dirección, subdirección, departamento y servicio. El padre de un área se obtiene poniendo a `00` el último segmento distinto de cero:
+
+```
+NBG-01-01-02-27-51  SERVICIO DE TORAX Y ENDOSCOPIA
+NBG-01-01-02-27-00  └ DEPARTAMENTO DE CIRUGIA CARDIOVASCULAR, TORAX Y ENDOSCOPIA
+NBG-01-01-02-00-00    └ SUBDIRECCION DE ASISTENCIA MEDICA
+NBG-01-01-00-00-00      └ DIRECCION MEDICA
+NBG-01-00-00-00-00        └ DIRECCION GENERAL
+```
+
+**La jerarquía no se materializa en la base.** No hay columna de área padre: se quitó deliberadamente porque la clave real tiene defectos que producirían padres inexistentes. Los conocidos, sobre las 133 áreas cargadas:
+
+1. `NBG-01-00-09-51-83 SERVICIO DE SEGURIDAD Y VIGILANCIA` — no existen ni `01-00-09-51-00` ni `01-00-09-00-00`. Sus hermanos (Intendencia `-59`, Lavandería `-82`, Transportes `-84`) viven en `01-04-09-51-*`, así que parece errata de `01-04` por `01-00`.
+2. `NBG-01-04-0401-00-33 CENDI` — tercer segmento de cuatro dígitos; rompe el patrón.
+3. Los segmentos **no son de ancho fijo**: coexisten `-00-02` y `-00-135`.
+4. Padres ausentes: los 11 registros `01-03-06-00-*` y los 3 de `01-04-07-*` no tienen fila padre. Los departamentos de Recursos Humanos cuelgan de subdirección `07` mientras la `SUBDIRECCION DE RECURSOS HUMANOS` es `08`.
+
+Cualquier árbol debe calcularse al leer, tolerando estos casos.
 
 ## Mapeo EF: trampas de nomenclatura
 
@@ -77,7 +104,7 @@ Es el mismo recurso que ya usa `SolicitudUsuario.Comentario` → columna `coment
 
 ```mermaid
 erDiagram
-    Areas ||--o{ Puestos : "FK_Puestos_Areas"
+    Areas ||--o{ Plazas : "FK_Plazas_Areas"
     Puestos ||--o{ Plazas : "FK_Plazas_Puestos"
     TiposContratacion ||--o{ Plazas : "FK_Plazas_TiposContratacion"
     TiposPlaza ||--o{ Plazas : "FK_Plazas_TiposPlaza"
@@ -91,15 +118,15 @@ erDiagram
 
     Areas {
         int Id PK
+        varchar_30 ClaveArea UK "NULL, unico filtrado"
         nvarchar_150 Descripcion UK "UQ_Areas_Descripcion"
     }
     Puestos {
         int Id PK
-        int AreaId FK
         nvarchar_150 Descripcion
         varchar_20 CodigoPuesto UK "UQ_Puestos_CodigoPuesto"
         varchar_10 GradoSalarial "NULL"
-        decimal_16_2 RangoSalarial "NULL"
+        smallint RangoSalarial "NULL"
     }
     TiposContratacion {
         int Id PK
@@ -117,10 +144,14 @@ erDiagram
     }
     Plazas {
         int Id PK
+        varchar_10 ClavePlaza UK "UQ_Plazas_ClavePlaza"
         int PuestoId FK
+        int AreaId FK "NULL"
         int TipoContratacionId FK
-        int TipoPlazaId FK
+        int TipoPlazaId FK "NULL"
         int UnidadId FK
+        nvarchar_150 DenominacionPuesto "NULL"
+        smallint CantidadPlazaHora "NULL"
         bit Ocupabilidad "default 0"
         date FechaVacancia "NULL"
         varchar_30 CodigoSHCP "NULL"
@@ -190,7 +221,8 @@ El diagrama no especificaba tipos de dato; los fijó el usuario y se aplicaron u
 
 | Clase de columna | Tipo SQL |
 | --- | --- |
-| Montos (`Percepciones`, `Deducciones`, `Neto`, `ValorImpuesto`, `RangoSalarial`) | `decimal(16,2)` |
+| Montos (`Percepciones`, `Deducciones`, `Neto`, `ValorImpuesto`) | `decimal(16,2)` |
+| Contadores (`RangoSalarial`, `CantidadPlazaHora`, `NumeroQuincena`) | `smallint` — no son importes |
 | Fechas | `date` — nunca `datetime` |
 | `Sexo` | `varchar(1)` con `CK_Empleados_Sexo CHECK (Sexo IN ('M','H','X'))` |
 | Identificadores fiscales | `CURP char(18)`, `RFC varchar(13)`, `NSS varchar(11)` |
@@ -204,9 +236,11 @@ Los nombres de `Empleados` son `varchar(50)` frente a los `varchar(30)`/`varchar
 
 ## Índices únicos
 
-`UQ_Empleados_NSS` es un **índice único filtrado** (`WHERE NSS IS NOT NULL`), no una restricción `UNIQUE`. La razón: en SQL Server un `UNIQUE` normal trata `NULL` como un valor comparable y solo admite una fila nula, lo que habría bloqueado el segundo empleado registrado sin NSS. `CURP` y `RFC` sí son `UNIQUE` ordinarias porque son `NOT NULL`.
+**Dos son índices únicos filtrados, no restricciones `UNIQUE`:** `UQ_Empleados_NSS` (`WHERE NSS IS NOT NULL`) y `UQ_Areas_ClaveArea` (`WHERE ClaveArea IS NOT NULL`). La razón es la misma en ambos: en SQL Server un `UNIQUE` normal trata `NULL` como valor comparable y **solo admite una fila nula**, así que con una restricción ordinaria el segundo empleado sin NSS —o la segunda área sin clave— fallaría con violación de unicidad. Verificado en ejecución: dos altas consecutivas de área sin clave devuelven 201.
 
-Los otros 12 son restricciones `UNIQUE` corrientes: `Descripcion` en cada catálogo, `UQ_Puestos_CodigoPuesto`, `UQ_Unidad_Unidad`, `UQ_Empleados_CURP`, `UQ_Empleados_RFC`, `UQ_Comentarios_Empleado_Numero (EmpleadoId, NumeroComentario)` y `UQ_Nominas_Empleado_Periodo (EmpleadoId, TipoNominaId, NumeroQuincena, FechaInicial)`.
+Los otros 12 son restricciones `UNIQUE` corrientes: `Descripcion` en cada catálogo, `UQ_Puestos_CodigoPuesto`, `UQ_Plazas_ClavePlaza`, `UQ_Unidad_Unidad`, `UQ_Empleados_CURP`, `UQ_Empleados_RFC`, `UQ_Comentarios_Empleado_Numero (EmpleadoId, NumeroComentario)` y `UQ_Nominas_Empleado_Periodo (EmpleadoId, TipoNominaId, NumeroQuincena, FechaInicial)`.
+
+`Areas` tiene por tanto **dos claves candidatas**: `ClaveArea`, opcional, y `Descripcion`, obligatoria y única. La identidad efectiva de un área es su descripción; la clave es un dato adicional que la mayoría de los registros trae pero no todos.
 
 Igual que en `acceso_usuario`, **ninguna FK tiene índice propio** y ninguna declara `ON DELETE`: todo borrado de un padre con hijos falla con error de integridad referencial.
 
@@ -214,19 +248,25 @@ Igual que en `acceso_usuario`, **ninguna FK tiene índice propio** y ninguna dec
 
 Puntos donde el diagrama de origen era ambiguo y el esquema aplicado tomó una postura que conviene revisar antes de construir backend encima:
 
-1. **`Plazas.Ocupabilidad` es `bit`**, interpretado como ocupada/vacante. Si el negocio necesita porcentaje de ocupación o un catálogo de estados, el tipo es incorrecto.
+1. **`Plazas.Ocupabilidad` es `bit`.** Confirmado contra el archivo real: la columna `OCUPADA O VACANTE` solo toma dos valores en 3 192 filas (3 058 ocupadas, 134 vacantes), así que `bit` es correcto.
 2. **`CatalogoImpuestos` está aislado.** Si las deducciones de `Nominas` deben desglosarse por impuesto, falta una tabla puente `NominaImpuestos (NominaId, ImpuestoId, Monto)`.
 3. **`Nominas.Neto` es columna normal, no calculada.** Nada garantiza que sea `Percepciones - Deducciones`; puede quedar inconsistente. La alternativa es `AS (Percepciones - Deducciones) PERSISTED`.
 4. **`Plazas.CodigoFederalPuesto` y `RegistroCodFedPuesto.CodigoFederalPuesto` duplican el dato.** La lectura asumida es «vigente» contra «histórico», pero ninguna restricción lo garantiza.
 5. **`Comentarios.TipoComentario` es texto libre `varchar(30)`**, sin catálogo: admite valores divergentes para el mismo concepto.
-6. **`Unidad.ZE` quedó `varchar(10)` sin interpretar**, porque el diagrama no aclara qué significa la abreviatura.
+6. **`Unidad.ZE` es la zona económica**, confirmado por el archivo: `RAMO 12`, `UNIDAD NBG`, `ZE 2` constantes en las 3 192 filas. La tabla tiene una sola fila.
 7. **`Empleados.PlazaId` es nullable**, para poder registrar a alguien antes de asignarle plaza. Si el proceso real exige plaza desde el alta, debe ser `NOT NULL`.
+8. **`Plazas.TipoPlazaId` es nullable y `TiposPlaza` está vacía.** Ninguna de las 41 columnas del archivo de origen dice qué es un «tipo de plaza»; lo que sí existe es el tipo de contratación. Queda pendiente definir si la tabla sobra.
+9. **`Empleados` no tiene número de empleado.** El archivo lo trae (`NÚMERO EMPLEADO`, 3 072 filas), y hará falta como clave de negocio en el módulo de empleados. También falta partir `NOMBRE COMPLETO`, que llega como un solo campo en orden apellido paterno, materno y nombres.
 
 ## El script
 
 `DataBase/scripts/RecursosHumanos.sql` crea el esquema con guarda (`IF NOT EXISTS` sobre `sys.schemas`, porque `Init.sql` ya lo crea; ver [[db-init-sql]]) y a continuación las 13 tablas con `CREATE TABLE` planos, en orden de dependencia. **No es idempotente**: reejecutarlo falla en la primera tabla existente. Cierra con un `SELECT` de verificación sobre `sys.tables`.
 
-A diferencia de `Init.sql`, el script **no contiene datos semilla, credenciales ni datos personales**, así que no comparte el impedimento de versionado que aquél tiene (ver [[db-scripts-and-migrations]] y [[db-findings]]). Los catálogos quedaron vacíos: `Areas`, `Puestos`, `TiposContratacion`, `TiposPlaza`, `Unidad`, `TiposNomina`, `RegimenSS` y `CatalogoImpuestos` necesitan valores antes de poder insertar una plaza o una nómina.
+El script **sí lleva semilla**, pero solo de catálogos institucionales: las 133 áreas con su clave, la unidad `NBG` (ramo 12, ZE 2), los tres tipos de contratación (`PERMANENTE`, `EVENTUAL`, `SUPLENCIA`), `ORDINARIA` como tipo de nómina e `ISSSTE` como régimen. **No contiene credenciales, hashes ni datos personales**, así que no comparte el impedimento de versionado de `Init.sql` (ver [[db-scripts-and-migrations]] y [[db-findings]]).
+
+Siguen vacías `TiposPlaza` y `CatalogoImpuestos`. `Puestos` se carga por endpoint, no por script: sus 96 filas salen del archivo de validación quincenal.
+
+> **El orden físico de columnas no coincide con el del script.** Las tablas se crearon primero y luego se alteraron, así que en `Areas` el orden real es `Id, Descripcion, ClaveArea` mientras el `CREATE` declara `Id, ClaveArea, Descripcion`. Es irrelevante para EF y para cualquier `SELECT` con columnas nombradas, pero rompe un `INSERT` sin lista de columnas o un `SELECT *` posicional.
 
 ## Enlaces
 

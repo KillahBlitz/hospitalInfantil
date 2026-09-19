@@ -41,6 +41,8 @@ builder.Services.AddOpenApi();
 builder.Services.AddScoped<UserAccessRepository>();
 builder.Services.AddScoped<AuthHandler>();
 builder.Services.AddScoped<PlatformHandler>();
+builder.Services.AddScoped<HumanResourcesRepository>();
+builder.Services.AddScoped<HumanResourcesHandler>();
 
 builder.Services.AddDbContext<UserAccessDbContext>(options =>
 {

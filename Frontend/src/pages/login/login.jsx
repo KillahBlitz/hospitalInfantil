@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { loginUser } from '../../composable/AuthApi.ts';
+import { takeSessionNotice } from '../../composable/Session.ts';
 import './login.css';
 
 function Login() {
@@ -8,6 +9,11 @@ function Login() {
   const [contrasena, setContrasena] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const notice = takeSessionNotice();
+    if (notice) setMessage(notice);
+  }, []);
 
   const handleSubmit = async (e) => {
       e.preventDefault();

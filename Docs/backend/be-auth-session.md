@@ -201,7 +201,9 @@ flowchart LR
 
 Consecuencias:
 
-1. El pipeline hace `docker rm -f` y `docker compose up -d --build` en cada push (ver [[be-deployment]]): el contenedor nuevo genera un **anillo de claves nuevo** → **todos los tokens emitidos antes del despliegue dejan de ser válidos** y todos los usuarios quedan con sesiones muertas hasta volver a entrar. El SPA lo manifiesta como *"Tu sesión expiró o no es válida"*.
+1. El pipeline hace `docker rm -f` y `docker compose up -d --build` en cada push (ver [[be-deployment]]): el contenedor nuevo genera un **anillo de claves nuevo** → **todos los tokens emitidos antes del despliegue dejan de ser válidos** y todos los usuarios quedan con sesiones muertas hasta volver a entrar.
+
+   **Esta es la causa habitual de que una sesión "expire" mucho antes de las 8 horas**, y explica el patrón intermitente: no depende del tiempo transcurrido sino de cuándo se reinició la API. Desde el 2026-09-19 el frontend ya no se queda con la sesión zombi —el primer 401 lo expulsa al login con aviso—, pero eso trata el síntoma: mientras las claves no se persistan, cada despliegue seguirá echando a todos los usuarios conectados. Ver [[fe-session-state]].
 2. **No se puede escalar horizontalmente**: dos réplicas de la API no compartirían claves, así que un token emitido por una no sería válido en la otra.
 
 **Mitigación:** persistir el anillo de claves (volumen montado + `PersistKeysToFileSystem`, o `PersistKeysToDbContext` con `SetApplicationName` fijo).

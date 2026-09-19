@@ -44,8 +44,15 @@ public partial class HumanResourcesDbContext : DbContext
         {
             entity.ToTable("Areas", "recursos_humanos");
 
+            entity.HasIndex(e => e.ClaveArea, "UQ_Areas_ClaveArea")
+                .IsUnique()
+                .HasFilter("([ClaveArea] IS NOT NULL)");
+
             entity.HasIndex(e => e.Descripcion, "UQ_Areas_Descripcion").IsUnique();
 
+            entity.Property(e => e.ClaveArea)
+                .HasMaxLength(30)
+                .IsUnicode(false);
             entity.Property(e => e.Descripcion).HasMaxLength(150);
         });
 
@@ -62,12 +69,6 @@ public partial class HumanResourcesDbContext : DbContext
             entity.Property(e => e.GradoSalarial)
                 .HasMaxLength(10)
                 .IsUnicode(false);
-            entity.Property(e => e.RangoSalarial).HasColumnType("decimal(16, 2)");
-
-            entity.HasOne(d => d.Area).WithMany(p => p.Puestos)
-                .HasForeignKey(d => d.AreaId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Puestos_Areas");
         });
 
         modelBuilder.Entity<TipoContratacion>(entity =>
@@ -109,6 +110,12 @@ public partial class HumanResourcesDbContext : DbContext
         {
             entity.ToTable("Plazas", "recursos_humanos");
 
+            entity.HasIndex(e => e.ClavePlaza, "UQ_Plazas_ClavePlaza").IsUnique();
+
+            entity.Property(e => e.ClavePlaza)
+                .HasMaxLength(10)
+                .IsUnicode(false);
+            entity.Property(e => e.DenominacionPuesto).HasMaxLength(150);
             entity.Property(e => e.Ocupabilidad).HasDefaultValue(false);
             entity.Property(e => e.CodigoSHCP)
                 .HasMaxLength(30)
@@ -124,6 +131,11 @@ public partial class HumanResourcesDbContext : DbContext
                 .HasForeignKey(d => d.PuestoId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Plazas_Puestos");
+
+            entity.HasOne(d => d.Area).WithMany(p => p.Plazas)
+                .HasForeignKey(d => d.AreaId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Plazas_Areas");
 
             entity.HasOne(d => d.TipoContratacion).WithMany(p => p.Plazas)
                 .HasForeignKey(d => d.TipoContratacionId)

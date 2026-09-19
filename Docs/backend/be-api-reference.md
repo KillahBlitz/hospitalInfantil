@@ -38,8 +38,13 @@ updated: 2026-09-18
 | 12 | `POST` | `/Platform/Users/Approve` | **`[Authorize]`** | `ApproveUserRequest` | `200` `{success,code,message}` | `400`, `401`, `403`, `404`, `409`, `500` |
 | 13 | `GET` | `/Platform/Users/{id:int}/Permissions` | **`[Authorize]`** | ruta | `200` `UserPermissionsResponse` | `400`, `401`, `404`, `500` |
 | 14 | `PUT` | `/Platform/Users/Permissions` | **`[Authorize]`** | `UpdateUserPermissionsRequest` | `200` `{success,code,message}` | `400`, `401`, `403`, `404`, `500` |
-| 15 | `POST` | `/HumanResources` | — | — | `200` `text/plain` | — |
-| 16 | `POST` | `/Contability` | — | — | `200` `text/plain` | — |
+| 15 | `GET` | `/HumanResources/Areas` | **—** | — | `200` `AreasResponse` | — |
+| 16 | `POST` | `/HumanResources/Areas` | **—** | `AreaRequest` | `201` `CatalogUploadResponse` | `400` rechazo, `409` ya existía |
+| 17 | `POST` | `/HumanResources/Areas/Upload` | **—** | `UploadAreasRequest` | `200` `CatalogUploadResponse` | `400` todo rechazado, `409` integridad |
+| 18 | `GET` | `/HumanResources/Puestos` | **—** | — | `200` `PuestosResponse` | — |
+| 19 | `POST` | `/HumanResources/Puestos` | **—** | `PuestoRequest` | `201` `CatalogUploadResponse` | `400` rechazo, `409` ya existía |
+| 20 | `POST` | `/HumanResources/Puestos/Upload` | **—** | `UploadPuestosRequest` | `200` `CatalogUploadResponse` | `400` todo rechazado, `409` integridad |
+| 21 | `POST` | `/Contability` | — | — | `200` `text/plain` | — |
 
 > **Atención:** los endpoints **8 y 9 devuelven datos personales de todos los usuarios y solicitudes sin ninguna autenticación**. Ver [[be-auth-session]] y [[be-findings]].
 
@@ -298,14 +303,43 @@ Sin cuerpo. `{id}` = `Usuarios.Id`.
 
 **Semántica destructiva [verificado]:** borra **todas** las filas de `UsuarioModuloPermisos` del usuario y escribe las enviadas. Un `permisos: []` deja al usuario sin ningún acceso. Además actualiza `Usuarios.TipoId`. Todo dentro de una transacción de aislamiento por defecto.
 
-## 4. Controllers de prueba
+## 4. `/HumanResources` — `Backend/Controllers/HumanResourcesController.cs`
+
+Primer corte del módulo de **administración de plazas**: solo los catálogos de áreas y puestos. Sustituye al `POST /HumanResources` que devolvía texto plano.
+
+> **Ningún endpoint lleva `[Authorize]`.** Es una decisión explícita del usuario: la disponibilidad se pinta en el frontend según el `userAccess` y la protección real llegará con un gateway. Hasta entonces, cualquiera con acceso de red al backend puede alterar los catálogos. Ver [[be-findings]].
+
+### 4.1 Semántica compartida de carga
+
+Las cuatro rutas `POST` pasan por el mismo camino: `HumanResourcesHandler` valida **fila por fila** y devuelve `CatalogUploadResponse` con `recibidas`, `insertadas`, `omitidas`, `rechazadas` y un `detalle` con el índice, la clave y el motivo de cada rechazo.
+
+- **Todo texto se homologa a mayúsculas.** El handler aplica `Trim()` y `ToUpperInvariant()` a cada campo de texto antes de comparar y de insertar: descripción y clave de área, y código, descripción y grado salarial de puesto. Así `direccion medica` reconoce a `DIRECCION MEDICA` como la misma fila, y todo el catálogo se almacena en un solo registro tipográfico. Verificado en base: 0 áreas con caracteres minúsculos.
+- **Idempotente por clave de negocio.** Reenviar la misma carga da `insertadas: 0` y `omitidas: N`. Verificado: dos envíos consecutivos de los 96 puestos dan 96 y luego 0.
+- **Una fila mala no tumba el lote.** Los DTO de petición **no llevan `[MaxLength]` ni `[Required]` en los campos**, deliberadamente: con esos atributos, `[ApiController]` aborta la petición completa con `ProblemDetails` y se pierde el reporte por fila. Toda la validación de longitud y obligatoriedad vive en el handler.
+- `code` vale `success` si no hubo rechazos, `partial` si hubo rechazos pero también inserciones, y `rejected` si no se insertó nada.
+- Las rutas de alta individual (`POST /Areas`, `POST /Puestos`) envuelven un solo elemento y traducen el resultado: `201` si insertó, `409` si ya existía, `400` si lo rechazó.
+
+### 4.2 Áreas
+
+`AreaRequest` es `{ claveArea?, descripcion }`. **Ambos campos son opcionales en el DTO**; el handler exige solo `descripcion`.
+
+**El handler espera el nombre ya limpio.** No parsea ni recorta prefijos: cada campo llega en su propia propiedad. Si `descripcion` viniera como `NBG-01-00-00-01-00 - DEPARTAMENTO DE ASUNTOS JURIDICOS`, esa cadena completa se guardaría como nombre del área. Separar la clave de la descripción es responsabilidad de quien prepara la carga.
+
+Reglas de rechazo: descripción vacía, clave de más de 30 caracteres, descripción de más de 150, o clave ya usada por un área con **otra** descripción. Descripción repetida no es rechazo sino omisión.
+
+### 4.3 Puestos
+
+`PuestoRequest` es `{ codigoPuesto, descripcion, gradoSalarial?, rangoSalarial? }`, todos opcionales en el DTO. El handler exige `codigoPuesto` y `descripcion`, homologa los tres campos de texto y limita a 20, 150 y 10 caracteres; `rangoSalarial` es `short?`.
+
+El recorte de espacios no es cosmético: en el archivo de origen **6 códigos traen dos descripciones que solo difieren en un espacio inicial** (`' MEDICO ESPECIALISTA  A'` frente a `'MEDICO ESPECIALISTA  A'`). Sin `Trim` se duplicarían puestos. El espacio doble interno (`SOPORTE ADMINISTRATIVO  C`) **sí se conserva**: solo se recortan los extremos.
+
+## 4bis. Controller de prueba que queda
 
 | Endpoint | Archivo | Devuelve |
 | --- | --- | --- |
-| `POST /HumanResources` | `Controllers/HumanResourcesController.cs:10-14` | `text/plain`: `Hello from HumanResourcesController` |
 | `POST /Contability` | `Controllers/ContabilityController.cs:10-14` | `text/plain`: `Hello from ContabilityController` |
 
-**[verificado]** Ambos son `[HttpPost]` **sin plantilla**, así que la ruta es exactamente el nombre del controller. Conservar la grafía **`Contability`** (no "Accountability"/"Contabilidad") al rastrear rutas. No tienen DTO, handler, persistencia ni `[Authorize]`.
+**[verificado]** Es `[HttpPost]` **sin plantilla**, así que la ruta es exactamente el nombre del controller. Conservar la grafía **`Contability`** (no "Accountability"/"Contabilidad") al rastrear rutas. No tiene DTO, handler, persistencia ni `[Authorize]`.
 
 ## 5. Rutas que NO existen
 

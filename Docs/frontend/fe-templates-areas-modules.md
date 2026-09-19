@@ -39,12 +39,31 @@ Normalización aplicada: **solo `toLowerCase()`**. No hay `trim()`, no hay elimi
 | ID codificado | Componente | Archivo | Estado funcional |
 | --- | --- | --- | --- |
 | `1` | `AccountsModule` | `templates/platform/accounts/accountsModule.jsx` | **Funcional con persistencia** ([[fe-module-accounts]]) |
-| `2` | `PlacesModule` | `templates/humanResources/places/placesModules.jsx` | Placeholder de 10 líneas |
+| `2` | `PlacesModule` | `templates/humanResources/places/placesModules.jsx` | **Funcional con persistencia**: catálogos de áreas y puestos |
 | `3` | `PermitsModule` | `templates/platform/permits/permitsModule.jsx` | **Funcional con persistencia** ([[fe-module-permits]]) |
+| `4` | `EmployeesModule` | `templates/humanResources/employees/employeesModule.jsx` | Andamio: título y propósito, sin operaciones |
+| `5` | `PayrollModule` | `templates/humanResources/payroll/payrollModule.jsx` | Andamio: título y propósito, sin operaciones |
+| `6` | `FomopeModule` | `templates/humanResources/fomope/fomopeModule.jsx` | Andamio: título y propósito, sin operaciones |
 
 El registro es **global por ID**, no por combinación área+nombre. Si en SQL existiese un módulo con `Id = 2` dentro del área Plataforma, `AreaTemplate` pintaría `PlacesModule` ("Administrar Plazas") dentro de Plataforma. *(Inferencia directa de `areaTemplate.jsx:50`.)*
 
-> **Pendiente de verificar**: que los IDs reales de `acceso_usuario.Modulos` sean 1, 2 y 3 con esos `AreaId`. Esta bóveda documenta el contrato del frontend, no un dato leído de la instancia SQL. Cruzar con [[db-table-modulos]] antes de crear o reordenar catálogos.
+Los tres andamios comparten `templates/humanResources/humanResources.css` en lugar de tener hoja propia, con el mismo criterio por el que `permitsModule.jsx` importa `../accounts/accountsModule.css`. Declaran **solo** la prop `module`, no `catalogs` ni `user`, para no añadir advertencias de parámetro sin uso al `lint`.
+
+### Cruce verificado contra la instancia
+
+Comprobado el **2026-09-19** contra `POST /Auth/modules` con las tres áreas: los seis IDs del registro corresponden al módulo que se espera, y **no hay entradas del registro sin módulo en la base**.
+
+| ID | Nombre en la base | Área | Componente |
+| --- | --- | --- | --- |
+| `1` | `configuracion de cuentas` | plataforma | `AccountsModule` |
+| `2` | `Administrar Plazas` | recursos humanos | `PlacesModule` |
+| `3` | `Administrar Permisos` | plataforma | `PermitsModule` |
+| `4` | `Administrar Empleados` | recursos humanos | `EmployeesModule` |
+| `5` | `Registrar Nominas` | recursos humanos | `PayrollModule` |
+| `6` | `Generar FOMOPE` | recursos humanos | `FomopeModule` |
+| `1002` | `Complemento de Pago` | contabilidad | **ninguno** → "sin contenido" |
+
+El único módulo sin componente es `1002`. Al construirlo hay que añadir su entrada aquí; sin ella no se monta, por más permisos que tenga el usuario. Cruzar con [[db-table-modulos]] antes de crear o reordenar catálogos.
 
 ## 2. Los envoltorios de área
 

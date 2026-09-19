@@ -1,9 +1,13 @@
-function Contability({ user, catalogs }) {
+import AreaTemplate from '../shared/areaTemplate.jsx';
+
+function Contability({ user, catalogs, selectedModuleId }) {
     return (
-        <div className="template-contability">
-            <h1 className="content-title">Contabilidad</h1>
-            <p className="content-placeholder">Modulo de contabilidad.</p>
-        </div>
+        <AreaTemplate
+            user={user}
+            catalogs={catalogs}
+            areaKey="contabilidad"
+            selectedModuleId={selectedModuleId}
+        />
     );
 }
 

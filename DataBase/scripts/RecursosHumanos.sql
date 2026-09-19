@@ -8,26 +8,26 @@ GO
 CREATE TABLE recursos_humanos.Areas (
     Id INT IDENTITY(1,1) NOT NULL,
     Descripcion NVARCHAR(150) NOT NULL,
+    ClaveArea VARCHAR(30) NULL,
 
     CONSTRAINT PK_Areas PRIMARY KEY (Id),
     CONSTRAINT UQ_Areas_Descripcion UNIQUE (Descripcion)
 );
 GO
 
+CREATE UNIQUE INDEX UQ_Areas_ClaveArea
+    ON recursos_humanos.Areas(ClaveArea)
+    WHERE ClaveArea IS NOT NULL;
+GO
+
 CREATE TABLE recursos_humanos.Puestos (
     Id INT IDENTITY(1,1) NOT NULL,
-    AreaId INT NOT NULL,
     Descripcion NVARCHAR(150) NOT NULL,
     CodigoPuesto VARCHAR(20) NOT NULL,
     GradoSalarial VARCHAR(10) NULL,
-    RangoSalarial DECIMAL(16,2) NULL,
+    RangoSalarial SMALLINT NULL,
 
     CONSTRAINT PK_Puestos PRIMARY KEY (Id),
-
-    CONSTRAINT FK_Puestos_Areas
-        FOREIGN KEY (AreaId)
-        REFERENCES recursos_humanos.Areas(Id),
-
     CONSTRAINT UQ_Puestos_CodigoPuesto UNIQUE (CodigoPuesto)
 );
 GO
@@ -65,19 +65,27 @@ CREATE TABLE recursos_humanos.Plazas (
     Id INT IDENTITY(1,1) NOT NULL,
     PuestoId INT NOT NULL,
     TipoContratacionId INT NOT NULL,
-    TipoPlazaId INT NOT NULL,
+    TipoPlazaId INT NULL,
     UnidadId INT NOT NULL,
     Ocupabilidad BIT NOT NULL DEFAULT 0,
     FechaVacancia DATE NULL,
     CodigoSHCP VARCHAR(30) NULL,
     CodigoFederalPuesto VARCHAR(30) NULL,
     ClavePresupuestalActual VARCHAR(60) NULL,
+    ClavePlaza VARCHAR(10) NOT NULL,
+    AreaId INT NULL,
+    DenominacionPuesto NVARCHAR(150) NULL,
+    CantidadPlazaHora SMALLINT NULL,
 
     CONSTRAINT PK_Plazas PRIMARY KEY (Id),
 
     CONSTRAINT FK_Plazas_Puestos
         FOREIGN KEY (PuestoId)
         REFERENCES recursos_humanos.Puestos(Id),
+
+    CONSTRAINT FK_Plazas_Areas
+        FOREIGN KEY (AreaId)
+        REFERENCES recursos_humanos.Areas(Id),
 
     CONSTRAINT FK_Plazas_TiposContratacion
         FOREIGN KEY (TipoContratacionId)
@@ -89,7 +97,9 @@ CREATE TABLE recursos_humanos.Plazas (
 
     CONSTRAINT FK_Plazas_Unidad
         FOREIGN KEY (UnidadId)
-        REFERENCES recursos_humanos.Unidad(Id)
+        REFERENCES recursos_humanos.Unidad(Id),
+
+    CONSTRAINT UQ_Plazas_ClavePlaza UNIQUE (ClavePlaza)
 );
 GO
 
@@ -215,7 +225,6 @@ CREATE TABLE recursos_humanos.Nominas (
 );
 GO
 
-SELECT t.name AS TableName
 FROM sys.tables AS t
 INNER JOIN sys.schemas AS s ON s.schema_id = t.schema_id
 WHERE s.name = 'recursos_humanos'
