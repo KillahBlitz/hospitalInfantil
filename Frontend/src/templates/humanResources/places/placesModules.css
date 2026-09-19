@@ -7,7 +7,7 @@
 .places-panel {
   display: flex;
   flex-direction: column;
-  margin: 0 calc(-1 * var(--spacing-2xl));
+  margin: 0 calc(-1 * clamp(var(--spacing-lg), 2.2vw, var(--spacing-2xl)));
   border-top: 1px solid var(--color-border);
   border-bottom: 1px solid var(--color-border);
   background-color: var(--color-white);
@@ -17,7 +17,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--spacing-md);
-  padding: 0 var(--spacing-2xl);
+  padding: 0 clamp(var(--spacing-md), 2.2vw, var(--spacing-2xl));
   border-bottom: 1px solid var(--color-border);
   background-color: var(--color-background-light);
 }
@@ -49,8 +49,8 @@
   flex-wrap: wrap;
   align-items: center;
   gap: var(--spacing-md);
-  padding: var(--spacing-xl) var(--spacing-2xl);
-  min-height: 120px;
+  padding: var(--spacing-lg) clamp(var(--spacing-md), 2.2vw, var(--spacing-2xl));
+  min-height: 84px;
 }
 
 .places-hint {
@@ -343,7 +343,7 @@
 /* Titulo del modulo */
 .places-title {
   margin: 0;
-  font-size: 1.9rem;
+  font-size: clamp(1.3rem, 1.6vw, 1.8rem);
   font-weight: 700;
   color: var(--color-secondary);
 }
@@ -459,12 +459,12 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-sm);
-  margin: 0 calc(-1 * var(--spacing-2xl));
+  margin: 0 calc(-1 * clamp(var(--spacing-lg), 2.2vw, var(--spacing-2xl)));
 }
 
 .places-showing {
   margin: 0;
-  padding: 0 var(--spacing-2xl);
+  padding: 0 clamp(var(--spacing-md), 2.2vw, var(--spacing-2xl));
   font-size: 0.82rem;
   color: var(--color-text-light);
 }
@@ -477,52 +477,52 @@
 
 .places-table {
   width: 100%;
-  min-width: 1100px;
+  min-width: 800px;
   border-collapse: collapse;
   table-layout: fixed;
-  font-size: 0.78rem;
-  line-height: 1.5;
+  font-size: clamp(0.7rem, 0.62vw, 0.82rem);
+  line-height: 1.4;
 }
 
-.places-table col.places-col-clave { width: 9%; }
-.places-table col.places-col-puesto { width: 16%; }
-.places-table col.places-col-area { width: 18%; }
+.places-table col.places-col-clave { width: 7%; }
+.places-table col.places-col-puesto { width: 20%; }
+.places-table col.places-col-area { width: 19%; }
 .places-table col.places-col-codigo { width: 9%; }
 .places-table col.places-col-contratacion { width: 11%; }
-.places-table col.places-col-nivel { width: 6%; }
-.places-table col.places-col-fecha { width: 9%; }
-.places-table col.places-col-documento { width: 7%; }
+.places-table col.places-col-nivel { width: 5%; }
+.places-table col.places-col-fecha { width: 8%; }
+.places-table col.places-col-documento { width: 5%; }
 .places-table col.places-col-estatus { width: 8%; }
-.places-table col.places-col-acciones { width: 7%; }
+.places-table col.places-col-acciones { width: 8%; }
 
 .places-table thead th {
   position: sticky;
   top: 0;
-  padding: 0.65rem var(--spacing-sm);
+  padding: 0.5rem 0.5rem;
   background-color: var(--color-background);
   color: var(--color-secondary);
-  font-size: 0.72rem;
+  font-size: clamp(0.65rem, 0.55vw, 0.75rem);
   font-weight: 700;
+  line-height: 1.25;
   text-align: left;
-  white-space: nowrap;
 }
 
 .places-table thead th:first-child,
 .places-table tbody td:first-child {
-  padding-left: var(--spacing-2xl);
+  padding-left: clamp(var(--spacing-md), 2.2vw, var(--spacing-2xl));
 }
 
 .places-table thead th:last-child,
 .places-table tbody td:last-child {
-  padding-right: var(--spacing-2xl);
+  padding-right: clamp(var(--spacing-md), 2.2vw, var(--spacing-2xl));
 }
 
 .places-table tbody td {
-  padding: 0.7rem var(--spacing-sm);
+  padding: 0.5rem 0.5rem;
   border-top: 1px solid var(--color-border);
   color: var(--color-text);
   vertical-align: middle;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 .places-table tbody tr:nth-child(even) {
@@ -566,8 +566,9 @@
 .places-row-icon {
   display: grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
   padding: 0;
   border: none;
   border-radius: var(--border-radius-sm);
@@ -600,7 +601,7 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--spacing-md);
-  padding: 0 var(--spacing-2xl);
+  padding: 0 clamp(var(--spacing-md), 2.2vw, var(--spacing-2xl));
 }
 
 .places-found {

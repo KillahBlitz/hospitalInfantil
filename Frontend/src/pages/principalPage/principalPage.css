@@ -7,7 +7,7 @@
 
 /* Franja verde: menu de modulos (fija, sin scroll de pagina) */
 .principal-sidebar {
-  width: 260px;
+  width: clamp(190px, 14vw, 250px);
   flex-shrink: 0;
   height: 100vh;
   background-color: var(--color-secondary);
@@ -216,10 +216,11 @@
 /* Area de contenido: blanco, aqui ocurre el scroll */
 .principal-content {
   flex: 1;
+  min-width: 0;
   height: 100vh;
   overflow-y: auto;
   background-color: var(--color-white);
-  padding: var(--spacing-2xl);
+  padding: clamp(var(--spacing-lg), 2.2vw, var(--spacing-2xl));
 }
 
 .content-title {
