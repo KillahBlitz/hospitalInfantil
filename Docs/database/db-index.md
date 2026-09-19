@@ -24,6 +24,7 @@ Bóvedas hermanas: [[architecture-overview]] · [[be-index]] · [[fe-index]]
 | Nota | Contenido |
 | --- | --- |
 | [[db-schema-acceso-usuario]] | Visión general, inventario de las 7 tablas, diagrama ER, convenciones de tipos |
+| [[db-schema-recursos-humanos]] | Esquema `recursos_humanos`: 13 tablas aplicadas el 2026-09-19, diagrama ER, mapeo EF y sus trampas de nombre, decisiones abiertas. **Sin repositorio ni endpoints** |
 | [[db-relationships]] | Las 5 claves foráneas, PK compuesta, semántica de accesos, ausencias deliberadas |
 
 ## Notas de tabla
@@ -74,7 +75,7 @@ Detalle del mapeo desde la perspectiva del backend: [[be-dbcontext-entities]].
 
 ## Enlaces
 
-- Esquema: [[db-schema-acceso-usuario]] · [[db-relationships]]
+- Esquema: [[db-schema-acceso-usuario]] · [[db-schema-recursos-humanos]] · [[db-relationships]]
 - Tablas: [[db-table-usuarios]] · [[db-table-solicitud-usuarios]] · [[db-table-areas]] · [[db-table-modulos]] · [[db-table-permisos]] · [[db-table-tipo-usuario]] · [[db-table-usuario-modulo-permisos]]
 - Operación: [[db-queries-by-feature]] · [[db-infrastructure]] · [[db-scripts-and-migrations]] · [[db-init-sql]] · [[db-findings]]
 - Otras bóvedas: [[architecture-overview]] · [[be-index]] · [[be-dbcontext-entities]] · [[be-repository]] · [[be-api-reference]] · [[be-auth-session]] · [[be-deployment]] · [[fe-index]] · [[fe-templates-areas-modules]] · [[fe-interfaces]]

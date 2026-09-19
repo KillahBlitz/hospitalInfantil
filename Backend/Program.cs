@@ -49,6 +49,13 @@ builder.Services.AddDbContext<UserAccessDbContext>(options =>
     );
 });
 
+builder.Services.AddDbContext<HumanResourcesDbContext>(options =>
+{
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("HospitalInfantilDb")
+    );
+});
+
 var app = builder.Build();
 
 //if (app.Environment.IsDevelopment())

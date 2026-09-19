@@ -22,11 +22,12 @@ updated: 2026-09-18
 | 8 | `Program.cs:37-39` | `AddControllers()`, `AddSwaggerGen()`, `AddOpenApi()` | Dos generadores de documento a la vez |
 | 9 | `Program.cs:41-43` | `AddScoped<UserAccessRepository>()`, `AddScoped<AuthHandler>()`, `AddScoped<PlatformHandler>()` | |
 | 10 | `Program.cs:45-50` | `AddDbContext<UserAccessDbContext>` con `UseSqlServer(GetConnectionString("HospitalInfantilDb"))` | Lifetime `Scoped` implícito |
-| 11 | `Program.cs:52` | `builder.Build()` | |
-| 12 | `Program.cs:54-60` | `MapOpenApi()`, `UseSwagger()`, `UseSwaggerUI()` — **el `if (app.Environment.IsDevelopment())` está comentado** | Ver §5 |
-| 13 | `Program.cs:63` | `UseCors(FrontendCorsPolicy)` | |
-| 14 | `Program.cs:65-66` | `UseAuthentication()`, `UseAuthorization()` | |
-| 15 | `Program.cs:67-68` | `MapControllers()`, `Run()` | |
+| 11 | `Program.cs:52-57` | `AddDbContext<HumanResourcesDbContext>` con **la misma** cadena de conexión | Dos contextos sobre la misma base, distinto esquema. Ver [[be-dbcontext-entities]] |
+| 12 | `Program.cs:59` | `builder.Build()` | |
+| 13 | `Program.cs:61-67` | `MapOpenApi()`, `UseSwagger()`, `UseSwaggerUI()` — **el `if (app.Environment.IsDevelopment())` está comentado** | Ver §5 |
+| 14 | `Program.cs:70` | `UseCors(FrontendCorsPolicy)` | |
+| 15 | `Program.cs:72-73` | `UseAuthentication()`, `UseAuthorization()` | |
+| 16 | `Program.cs:74-75` | `MapControllers()`, `Run()` | |
 
 **[verificado]** Lo que **no** ocurre en el arranque: no hay `Database.Migrate()`, `EnsureCreated()`, *seed* de catálogos, `UseHttpsRedirection()`, `UseHsts()`, `AddHealthChecks()`, `UseExceptionHandler()`, `AddProblemDetails()`, `AddRateLimiter()`, `AddOutputCache()`, logging estructurado propio ni `AddHttpContextAccessor()`.
 
@@ -39,10 +40,13 @@ updated: 2026-09-18
 | `AuthHandler` | **Scoped** | `Program.cs:42` | `AuthController` | ninguna |
 | `PlatformHandler` | **Scoped** | `Program.cs:43` | `PlatformController` | ninguna |
 | `UserAccessDbContext` | **Scoped** (por defecto de `AddDbContext`) | `Program.cs:45` | `UserAccessRepository` | ninguna |
+| `HumanResourcesDbContext` | **Scoped** (por defecto de `AddDbContext`) | `Program.cs:52` | **nadie todavía** | ninguna |
 | `ILogger<PlatformController>` | Singleton (del framework) | implícito | `PlatformController` | `ILogger<T>` |
 | `IOptionsMonitor<BearerTokenOptions>` | Singleton (del framework) | implícito por `AddBearerToken` | `SessionTokenService` | sí |
 
 **Consecuencia del grafo Scoped uniforme [verificado]:** en una misma petición HTTP, controller, handler y repositorio comparten **una única instancia de `UserAccessDbContext`**. Por eso funcionan las transacciones que abarcan varios `SaveChangesAsync` en [[be-repository]], y por eso el *change tracker* mantiene coherencia dentro de la petición.
+
+**Dos `DbContext` sobre la misma conexión [verificado]:** desde el 2026-09-19 hay dos contextos registrados con la **misma** cadena `HospitalInfantilDb`, cada uno con sus propias entidades y su propio esquema SQL (`acceso_usuario` y `recursos_humanos`). Al ser instancias distintas tienen *change trackers* independientes: una transacción abierta en uno **no** cubre las escrituras del otro. Si alguna vez hace falta atomicidad entre ambos esquemas, habrá que compartir explícitamente la `DbConnection` y la `DbTransaction`, o unificar los dos contextos en uno.
 
 **[inferencia]** `SessionTokenService` no tiene estado propio (`IOptionsMonitor` es singleton); podría ser `Singleton` sin cambiar el comportamiento. Registrarlo como `Scoped` es inocuo pero innecesario.
 

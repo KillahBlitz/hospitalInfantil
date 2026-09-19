@@ -6,7 +6,9 @@ updated: 2026-09-18
 
 # `UserAccessDbContext` y las 7 entidades
 
-`Backend/Data/UserAccessDbContext.cs` (175 líneas) es el único `DbContext` del proyecto. Las entidades están en `Backend/Models/Schemas/UserAccess/`. La verdad física de la base (tipos reales, IDENTITY, *collation*, triggers) se documenta en [[db-schema-acceso-usuario]]; aquí se describe **el mapeo declarado en C#**.
+`Backend/Data/UserAccessDbContext.cs` (175 líneas) mapea el esquema `acceso_usuario`. Las entidades están en `Backend/Models/Schemas/UserAccess/`. La verdad física de la base (tipos reales, IDENTITY, *collation*, triggers) se documenta en [[db-schema-acceso-usuario]]; aquí se describe **el mapeo declarado en C#**.
+
+> **Ya no es el único `DbContext`.** Desde el 2026-09-19 existe también `Backend/Data/HumanResourcesDbContext.cs`, con 13 entidades en `Backend/Models/Schemas/HumanResources/` sobre el esquema `recursos_humanos`. Sigue la misma forma (clase `partial`, `OnModelCreatingPartial`, `DbSet` virtuales) y comparte la cadena de conexión, pero es un contexto separado con su propio *change tracker*. Ver [[db-schema-recursos-humanos]] y §2 de [[be-startup-di-config]]. Ese esquema **todavía no tiene repositorio, handler ni endpoints**: el contexto está registrado en DI y nadie lo consume.
 
 ## 1. Forma del contexto
 
