@@ -1,0 +1,220 @@
+{
+  "main": {
+    "id": "5bd8b6f859627f92",
+    "type": "split",
+    "children": [
+      {
+        "id": "b0934b92033ae5b4",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "a4b1476edb4c2724",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "architecture-overview.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "architecture-overview"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "ef766dce455be94c",
+    "type": "split",
+    "children": [
+      {
+        "id": "c019c5a2d1909e70",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "1a207aeaa22cf9c4",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Explorador de archivos"
+            }
+          },
+          {
+            "id": "35c97d8056b7bc93",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Buscar"
+            }
+          },
+          {
+            "id": "4c807379d46fae8f",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-bookmark",
+              "title": "Marcadores"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "14b3bf1264c509a2",
+    "type": "split",
+    "children": [
+      {
+        "id": "bf53f5a1b4322cbe",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "9c1713251976d671",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "architecture-overview.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Enlaces entrantes"
+            }
+          },
+          {
+            "id": "613db4fff7e30309",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "architecture-overview.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Enlaces salientes"
+            }
+          },
+          {
+            "id": "595ea552e07e3ef0",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Etiquetas"
+            }
+          },
+          {
+            "id": "2eac8927ad4e0457",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "Todas las propiedades"
+            }
+          },
+          {
+            "id": "4ed63aa1bcfc9b6c",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "architecture-overview.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Esquema"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Abrir selector rápido": false,
+      "graph:Abrir vista gráfica": false,
+      "canvas:Crear nuevo lienzo": false,
+      "daily-notes:Abrir la nota de hoy": false,
+      "templates:Insertar plantilla": false,
+      "command-palette:Abrir paleta de comandos": false,
+      "bases:Crear nueva base": false
+    }
+  },
+  "active": "a4b1476edb4c2724",
+  "lastOpenFiles": [
+    "database/db-init-sql.md",
+    "backend/be-findings.md",
+    "backend/be-deployment.md",
+    "backend/be-flows.md",
+    "frontend/fe-findings.md",
+    "backend/be-authorization-permissions.md",
+    "backend/be-auth-session.md",
+    "frontend/fe-config-deployment.md",
+    "database/db-findings.md",
+    "backend/be-dto-contracts.md",
+    "frontend/fe-design-system.md",
+    "backend/be-dbcontext-entities.md",
+    "database/db-scripts-and-migrations.md",
+    "database/db-infrastructure.md",
+    "backend/be-repository.md",
+    "frontend/fe-session-state.md",
+    "database/db-queries-by-feature.md",
+    "frontend/fe-interfaces.md",
+    "backend/be-handlers.md",
+    "frontend/fe-api-clients.md",
+    "database/db-table-usuario-modulo-permisos.md",
+    "database/db-table-tipo-usuario.md",
+    "frontend/fe-module-permits.md",
+    "backend/be-controllers.md",
+    "database/db-table-permisos.md",
+    "database/db-table-modulos.md"
+  ]
+}
