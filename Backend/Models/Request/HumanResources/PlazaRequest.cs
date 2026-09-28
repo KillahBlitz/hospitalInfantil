@@ -12,6 +12,8 @@ public class PlazaRequest
 
     public int? TipoPlazaId { get; set; }
 
+    public bool LimpiarTipoPlaza { get; set; }
+
     public int? UnidadId { get; set; }
 
     public string? DenominacionPuesto { get; set; }

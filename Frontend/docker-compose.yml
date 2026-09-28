@@ -2,6 +2,7 @@ services:
   frontend:
     image: hospital-frontend:${FRONTEND_IMAGE_TAG:-devel}
     container_name: ${FRONTEND_CONTAINER_NAME:-hospital-frontend}
+    restart: unless-stopped
     build:
       context: .
       dockerfile: Dockerfile

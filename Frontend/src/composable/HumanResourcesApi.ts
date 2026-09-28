@@ -1,4 +1,4 @@
-import type { AreaRequest, PuestoRequest, PlazaQuery, PlazaRequest } from "../interfaces/request/HumanResources";
+import type { AreaRequest, PuestoRequest, PlazaQuery, PlazaRequest, EmpleadoQuery, EmpleadoRequest } from "../interfaces/request/HumanResources";
 import type {
     AreasResponse,
     PuestosResponse,
@@ -7,7 +7,10 @@ import type {
     PlazasResponse,
     TiposContratacionResponse,
     UnidadesResponse,
+    Empleado,
+    EmpleadosResponse,
 } from "../interfaces/response/HumanResources";
+import { throwSessionExpired } from "./Session";
 
 const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/HumanResources`;
 
@@ -176,6 +179,124 @@ export async function deletePuesto(id: number): Promise<CatalogOperationResponse
     const result = await response.json().catch(() => null);
     if (!response.ok || !result?.success) {
         throw new Error(result?.message ?? 'No se pudo eliminar el puesto.');
+    }
+    return result;
+}
+
+export async function getEmpleados(query: EmpleadoQuery, accessToken?: string, signal?: AbortSignal): Promise<EmpleadosResponse> {
+    if (!accessToken) {
+        throwSessionExpired();
+    }
+    const params = new URLSearchParams();
+    Object.entries(query).forEach(([clave, valor]) => {
+        if (valor === null || valor === undefined || valor === '') return;
+        params.set(clave, String(valor));
+    });
+
+    const response = await fetch(`${API_BASE_URL}/Empleados?${params.toString()}`, {
+        headers: {
+            'Authorization': `Bearer ${accessToken}`
+        },
+        signal
+    });
+
+    if (response.status === 401) {
+        throwSessionExpired();
+    }
+
+    if (!response.ok) {
+        throw new Error(`Error fetching empleados: ${response.statusText}`);
+    }
+    return response.json();
+}
+
+export async function getEmpleadoById(id: number, accessToken?: string, signal?: AbortSignal): Promise<Empleado> {
+    if (!accessToken) {
+        throwSessionExpired();
+    }
+    const response = await fetch(`${API_BASE_URL}/Empleados/${id}`, {
+        headers: {
+            'Authorization': `Bearer ${accessToken}`
+        },
+        signal
+    });
+
+    if (response.status === 401) {
+        throwSessionExpired();
+    }
+
+    if (!response.ok) {
+        throw new Error(`Error fetching empleado: ${response.statusText}`);
+    }
+    return response.json();
+}
+
+export async function createEmpleado(empleado: EmpleadoRequest, accessToken?: string): Promise<CatalogOperationResponse> {
+    if (!accessToken) {
+        throwSessionExpired();
+    }
+    const response = await fetch(`${API_BASE_URL}/Empleados`, {
+        method: 'POST',
+        headers: {
+            ...JSON_HEADERS,
+            'Authorization': `Bearer ${accessToken}`
+        },
+        body: JSON.stringify(empleado),
+    });
+
+    if (response.status === 401) {
+        throwSessionExpired();
+    }
+
+    const result = await response.json().catch(() => null);
+    if (!response.ok || !result?.success) {
+        throw new Error(result?.message ?? 'No se pudo registrar el empleado.');
+    }
+    return result;
+}
+
+export async function updateEmpleado(id: number, empleado: EmpleadoRequest, accessToken?: string): Promise<CatalogOperationResponse> {
+    if (!accessToken) {
+        throwSessionExpired();
+    }
+    const response = await fetch(`${API_BASE_URL}/Empleados/${id}`, {
+        method: 'PUT',
+        headers: {
+            ...JSON_HEADERS,
+            'Authorization': `Bearer ${accessToken}`
+        },
+        body: JSON.stringify(empleado),
+    });
+
+    if (response.status === 401) {
+        throwSessionExpired();
+    }
+
+    const result = await response.json().catch(() => null);
+    if (!response.ok || !result?.success) {
+        throw new Error(result?.message ?? 'No se pudo actualizar el empleado.');
+    }
+    return result;
+}
+
+export async function deleteEmpleado(id: number, accessToken?: string): Promise<CatalogOperationResponse> {
+    if (!accessToken) {
+        throwSessionExpired();
+    }
+    const response = await fetch(`${API_BASE_URL}/Empleados/${id}`, {
+        method: 'DELETE',
+        headers: {
+            'Authorization': `Bearer ${accessToken}`
+        }
+    });
+
+    if (response.status === 401) {
+        throwSessionExpired();
+    }
+
+    const result = await response.json().catch(() => null);
+    if (!response.ok || !result?.success) {
+        throw new Error(result?.message ?? 'No se pudo eliminar el empleado.');
     }
     return result;
 }

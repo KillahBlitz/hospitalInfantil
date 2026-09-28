@@ -94,3 +94,29 @@ export interface Unidad {
 export interface UnidadesResponse {
     unidades: Unidad[];
 }
+
+export interface Empleado {
+    id: number;
+    plazaId: number | null;
+    clavePlaza: string | null;
+    denominacionPuesto: string | null;
+    nombres: string;
+    apellidoPaterno: string;
+    apellidoMaterno: string | null;
+    nombreCompleto: string;
+    fechaNacimiento: string;
+    sexo: string;
+    curp: string;
+    rfc: string;
+    nss: string | null;
+    fechaIngreso: string;
+    activo: boolean;
+}
+
+export interface EmpleadosResponse {
+    pagina: number;
+    tamano: number;
+    total: number;
+    totalPaginas: number;
+    empleados: Empleado[];
+}
