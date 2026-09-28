@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 
 namespace Backend.Models.Schemas.Contability;
+
 public partial class ComplementoPagoDetallado
 {
     public int IdComplementoPagoDetallado { get; set; }
@@ -21,4 +22,12 @@ public partial class ComplementoPagoDetallado
     public int? Periodo { get; set; }
 
     public decimal? MontoTotal { get; set; }
+
+    public virtual ComplementoPago? ComplementoPago { get; set; }
+
+    public virtual Factura? Factura { get; set; }
+
+    public virtual Productos? Producto { get; set; }
+
+    public virtual TipoRelacion? TipoRelacion { get; set; }
 }
