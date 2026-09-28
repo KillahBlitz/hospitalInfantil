@@ -16,4 +16,8 @@ public partial class MovimientoFactura
     public int? Año { get; set; }
 
     public DateOnly? Fecha { get; set; }
+
+    public virtual MovimientoContable MovimientoContable { get; set; } = null!;
+
+    public virtual Factura? Factura { get; set; }
 }

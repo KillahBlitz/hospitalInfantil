@@ -14,4 +14,6 @@ public partial class CuentaBancaria
     public string? Banco { get; set; }
 
     public int ClaveInterbancaria { get; set; }
+
+    public virtual Proveedor? Proveedor { get; set; }
 }

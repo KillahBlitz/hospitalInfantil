@@ -18,4 +18,10 @@ public partial class ComplementoPago
     public int? IdMetodoPago { get; set; }
 
     public decimal? MontoTotal { get; set; }
+
+    public virtual Proveedor? Proveedor { get; set; }
+
+    public virtual MetodoPago? MetodoPago { get; set; }
+
+    public virtual ICollection<ComplementoPagoDetallado> ComplementosPagoDetallados { get; set; } = new List<ComplementoPagoDetallado>();
 }

@@ -42,4 +42,6 @@ public partial class MovimientoContable
     public virtual TipoMovimientosCon? TipoMovCon { get; set; }
 
     public virtual MovimientoMonetario? MovimientoMonetario { get; set; }
+
+    public virtual ICollection<MovimientoFactura> MovimientosFacturas { get; set; } = new List<MovimientoFactura>();
 }

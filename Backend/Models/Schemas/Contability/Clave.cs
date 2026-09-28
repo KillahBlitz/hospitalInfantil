@@ -7,5 +7,7 @@ public partial class Clave
 {
     public int IdClave { get; set; }
 
-    public string? DesClaveArea {get; set;} = null!;
+    public string DesClaveArea { get; set; } = null!;
+
+    public virtual ICollection<Contrato> Contratos { get; set; } = new List<Contrato>();
 }
