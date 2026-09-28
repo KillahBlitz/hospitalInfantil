@@ -154,6 +154,55 @@ public class HumanResourcesController : ControllerBase
         return TraducirOperacion(response);
     }
 
+    [Microsoft.AspNetCore.Authorization.Authorize]
+    [HttpGet("Empleados")]
+    public async Task<IActionResult> GetEmpleados(
+        [FromQuery] EmpleadoQueryRequest query, CancellationToken cancellationToken)
+    {
+        var response = await _humanResourcesHandler.GetEmpleados(query, cancellationToken);
+        return Ok(response);
+    }
+
+    [Microsoft.AspNetCore.Authorization.Authorize]
+    [HttpGet("Empleados/{id:int}")]
+    public async Task<IActionResult> GetEmpleado(int id, CancellationToken cancellationToken)
+    {
+        if (id <= 0) return BadRequest(new { message = "El empleado indicado no es valido." });
+        var response = await _humanResourcesHandler.GetEmpleado(id, cancellationToken);
+        if (response == null) return NotFound(new { message = "Empleado no encontrado." });
+        return Ok(response);
+    }
+
+    [Microsoft.AspNetCore.Authorization.Authorize]
+    [HttpPost("Empleados")]
+    public async Task<IActionResult> CreateEmpleado(
+        [FromBody] EmpleadoRequest request, CancellationToken cancellationToken)
+    {
+        var response = await _humanResourcesHandler.CreateEmpleado(request, cancellationToken);
+        return response.Success
+            ? StatusCode(StatusCodes.Status201Created, response)
+            : TraducirOperacion(response);
+    }
+
+    [Microsoft.AspNetCore.Authorization.Authorize]
+    [HttpPut("Empleados/{id:int}")]
+    public async Task<IActionResult> UpdateEmpleado(
+        int id, [FromBody] EmpleadoRequest request, CancellationToken cancellationToken)
+    {
+        if (id <= 0) return BadRequest(new { message = "El empleado indicado no es valido." });
+        var response = await _humanResourcesHandler.UpdateEmpleado(id, request, cancellationToken);
+        return TraducirOperacion(response);
+    }
+
+    [Microsoft.AspNetCore.Authorization.Authorize]
+    [HttpDelete("Empleados/{id:int}")]
+    public async Task<IActionResult> DeleteEmpleado(int id, CancellationToken cancellationToken)
+    {
+        if (id <= 0) return BadRequest(new { message = "El empleado indicado no es valido." });
+        var response = await _humanResourcesHandler.DeleteEmpleado(id, cancellationToken);
+        return TraducirOperacion(response);
+    }
+
     private IActionResult TraducirOperacion(CatalogOperationResponse response) =>
         response.Code switch
         {

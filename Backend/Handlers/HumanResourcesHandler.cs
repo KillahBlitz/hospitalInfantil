@@ -454,7 +454,7 @@ public class HumanResourcesHandler
             PuestoId = solicitada.PuestoId!.Value,
             AreaId = solicitada.AreaId,
             TipoContratacionId = solicitada.TipoContratacionId!.Value,
-            TipoPlazaId = solicitada.TipoPlazaId,
+            TipoPlazaId = solicitada.LimpiarTipoPlaza ? null : solicitada.TipoPlazaId,
             UnidadId = solicitada.UnidadId!.Value,
             DenominacionPuesto = TextoOpcional(solicitada.DenominacionPuesto),
             CantidadPlazaHora = solicitada.CantidadPlazaHora,
@@ -484,7 +484,14 @@ public class HumanResourcesHandler
         plaza.PuestoId = solicitada.PuestoId!.Value;
         plaza.AreaId = solicitada.AreaId;
         plaza.TipoContratacionId = solicitada.TipoContratacionId!.Value;
-        plaza.TipoPlazaId = solicitada.TipoPlazaId;
+        if (solicitada.LimpiarTipoPlaza)
+        {
+            plaza.TipoPlazaId = null;
+        }
+        else if (solicitada.TipoPlazaId.HasValue)
+        {
+            plaza.TipoPlazaId = solicitada.TipoPlazaId.Value;
+        }
         plaza.UnidadId = solicitada.UnidadId!.Value;
         plaza.DenominacionPuesto = TextoOpcional(solicitada.DenominacionPuesto);
         plaza.CantidadPlazaHora = solicitada.CantidadPlazaHora;
@@ -567,6 +574,9 @@ public class HumanResourcesHandler
             !await _repository.ExisteArea(solicitada.AreaId.Value, cancellationToken))
             return Resultado(false, "invalid", "El area indicada no existe.");
 
+        if (solicitada.LimpiarTipoPlaza && solicitada.TipoPlazaId.HasValue)
+            return Resultado(false, "invalid", "No se puede asignar y limpiar el tipo de plaza en la misma peticion.");
+
         if (solicitada.TipoPlazaId.HasValue &&
             !await _repository.ExisteTipoPlaza(solicitada.TipoPlazaId.Value, cancellationToken))
             return Resultado(false, "invalid", "El tipo de plaza indicado no existe.");
@@ -588,4 +598,251 @@ public class HumanResourcesHandler
 
     private static string Homologar(string? valor) =>
         (valor ?? string.Empty).Trim().ToUpperInvariant();
+
+    public async Task<EmpleadosResponse> GetEmpleados(
+        EmpleadoQueryRequest filtros, CancellationToken cancellationToken = default)
+    {
+        var tamano = TamanosPagina.Contains(filtros.Tamano) ? filtros.Tamano : TamanoPaginaPorDefecto;
+        var pagina = filtros.Pagina < 1 ? 1 : filtros.Pagina;
+
+        var (total, empleados) = await _repository.GetEmpleadosPaginados(filtros, pagina, tamano, cancellationToken);
+        var totalPaginas = total == 0 ? 0 : (int)Math.Ceiling(total / (double)tamano);
+
+        if (totalPaginas > 0 && pagina > totalPaginas)
+        {
+            pagina = totalPaginas;
+            (total, empleados) = await _repository.GetEmpleadosPaginados(filtros, pagina, tamano, cancellationToken);
+        }
+
+        return new EmpleadosResponse
+        {
+            Pagina = pagina,
+            Tamano = tamano,
+            Total = total,
+            TotalPaginas = totalPaginas,
+            Empleados = empleados.Select(e => new EmpleadoItem
+            {
+                Id = e.Id,
+                PlazaId = e.PlazaId,
+                ClavePlaza = e.Plaza?.ClavePlaza,
+                DenominacionPuesto = e.Plaza?.DenominacionPuesto,
+                Nombres = e.Nombres,
+                ApellidoPaterno = e.ApellidoPaterno,
+                ApellidoMaterno = e.ApellidoMaterno,
+                NombreCompleto = $"{e.ApellidoPaterno} {(e.ApellidoMaterno ?? string.Empty)}".Trim() + $", {e.Nombres}",
+                FechaNacimiento = e.FechaNacimiento,
+                Sexo = e.Sexo,
+                CURP = e.CURP,
+                RFC = e.RFC,
+                NSS = e.NSS,
+                FechaIngreso = e.FechaIngreso,
+                Activo = e.Activo
+            }).ToList()
+        };
+    }
+
+    public async Task<EmpleadoItem?> GetEmpleado(int id, CancellationToken cancellationToken = default)
+    {
+        var e = await _repository.GetEmpleadoById(id, cancellationToken);
+        if (e == null) return null;
+
+        return new EmpleadoItem
+        {
+            Id = e.Id,
+            PlazaId = e.PlazaId,
+            ClavePlaza = e.Plaza?.ClavePlaza,
+            DenominacionPuesto = e.Plaza?.DenominacionPuesto,
+            Nombres = e.Nombres,
+            ApellidoPaterno = e.ApellidoPaterno,
+            ApellidoMaterno = e.ApellidoMaterno,
+            NombreCompleto = $"{e.ApellidoPaterno} {(e.ApellidoMaterno ?? string.Empty)}".Trim() + $", {e.Nombres}",
+            FechaNacimiento = e.FechaNacimiento,
+            Sexo = e.Sexo,
+            CURP = e.CURP,
+            RFC = e.RFC,
+            NSS = e.NSS,
+            FechaIngreso = e.FechaIngreso,
+            Activo = e.Activo
+        };
+    }
+
+    public async Task<CatalogOperationResponse> CreateEmpleado(
+        EmpleadoRequest request, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(request.Nombres) || string.IsNullOrWhiteSpace(request.ApellidoPaterno))
+            return Resultado(false, "bad_request", "El nombre y apellido paterno son obligatorios.");
+
+        if (string.IsNullOrWhiteSpace(request.CURP) || request.CURP.Trim().Length != 18)
+            return Resultado(false, "bad_request", "La CURP debe tener exactamente 18 caracteres.");
+
+        if (string.IsNullOrWhiteSpace(request.RFC) || (request.RFC.Trim().Length != 10 && request.RFC.Trim().Length != 13))
+            return Resultado(false, "bad_request", "El RFC debe tener 10 o 13 caracteres.");
+
+        var curp = request.CURP.Trim().ToUpper();
+        var rfc = request.RFC.Trim().ToUpper();
+        var nss = string.IsNullOrWhiteSpace(request.NSS) ? null : request.NSS.Trim();
+
+        if (await _repository.ExisteEmpleadoConCURP(0, curp, cancellationToken))
+            return Resultado(false, "conflict", "Ya existe un empleado registrado con esta CURP.");
+
+        if (await _repository.ExisteEmpleadoConRFC(0, rfc, cancellationToken))
+            return Resultado(false, "conflict", "Ya existe un empleado registrado con este RFC.");
+
+        if (nss != null && await _repository.ExisteEmpleadoConNSS(0, nss, cancellationToken))
+            return Resultado(false, "conflict", "Ya existe un empleado registrado con este NSS.");
+
+        Plaza? plaza = null;
+        if (!request.PlazaId.HasValue)
+            return Resultado(false, "bad_request", "Debe asociar una plaza vacante al empleado.");
+
+        plaza = await _repository.FindPlaza(request.PlazaId.Value, cancellationToken);
+        if (plaza == null)
+            return Resultado(false, "not_found", "La plaza indicada no existe.");
+
+        if (plaza.Ocupabilidad)
+            return Resultado(false, "conflict", "La plaza indicada ya se encuentra ocupada.");
+
+        var nuevo = new Empleado
+        {
+            PlazaId = request.PlazaId,
+            Nombres = request.Nombres.Trim(),
+            ApellidoPaterno = request.ApellidoPaterno.Trim(),
+            ApellidoMaterno = string.IsNullOrWhiteSpace(request.ApellidoMaterno) ? null : request.ApellidoMaterno.Trim(),
+            FechaNacimiento = request.FechaNacimiento,
+            Sexo = request.Sexo.Trim().ToUpper(),
+            CURP = curp,
+            RFC = rfc,
+            NSS = nss,
+            FechaIngreso = request.FechaIngreso,
+            Activo = request.Activo
+        };
+
+        if (plaza != null && nuevo.Activo)
+        {
+            plaza.Ocupabilidad = true;
+            plaza.FechaVacancia = null;
+        }
+
+        await _repository.AddEmpleado(nuevo, cancellationToken);
+
+        return Resultado(true, "success", "Empleado registrado correctamente.");
+    }
+
+    public async Task<CatalogOperationResponse> UpdateEmpleado(
+        int id, EmpleadoRequest request, CancellationToken cancellationToken = default)
+    {
+        var empleado = await _repository.GetEmpleadoById(id, cancellationToken);
+        if (empleado == null)
+            return Resultado(false, "not_found", "El empleado no existe.");
+
+        if (string.IsNullOrWhiteSpace(request.Nombres) || string.IsNullOrWhiteSpace(request.ApellidoPaterno))
+            return Resultado(false, "bad_request", "El nombre y apellido paterno son obligatorios.");
+
+        if (string.IsNullOrWhiteSpace(request.CURP) || request.CURP.Trim().Length != 18)
+            return Resultado(false, "bad_request", "La CURP debe tener exactamente 18 caracteres.");
+
+        if (string.IsNullOrWhiteSpace(request.RFC) || (request.RFC.Trim().Length != 10 && request.RFC.Trim().Length != 13))
+            return Resultado(false, "bad_request", "El RFC debe tener 10 o 13 caracteres.");
+
+        var curp = request.CURP.Trim().ToUpper();
+        var rfc = request.RFC.Trim().ToUpper();
+        var nss = string.IsNullOrWhiteSpace(request.NSS) ? null : request.NSS.Trim();
+
+        if (await _repository.ExisteEmpleadoConCURP(id, curp, cancellationToken))
+            return Resultado(false, "conflict", "Ya existe otro empleado registrado con esta CURP.");
+
+        if (await _repository.ExisteEmpleadoConRFC(id, rfc, cancellationToken))
+            return Resultado(false, "conflict", "Ya existe otro empleado registrado con este RFC.");
+
+        if (nss != null && await _repository.ExisteEmpleadoConNSS(id, nss, cancellationToken))
+            return Resultado(false, "conflict", "Ya existe otro empleado registrado con este NSS.");
+
+        var oldPlazaId = empleado.PlazaId;
+        var newPlazaId = request.PlazaId;
+
+        var releaseOldPlaza = oldPlazaId.HasValue && (oldPlazaId != newPlazaId || !request.Activo);
+        var occupyNewPlaza = newPlazaId.HasValue && oldPlazaId != newPlazaId && request.Activo;
+
+        Plaza? oldPlaza = null;
+        if (releaseOldPlaza)
+        {
+            oldPlaza = await _repository.FindPlaza(oldPlazaId!.Value, cancellationToken);
+        }
+
+        Plaza? newPlaza = null;
+        if (occupyNewPlaza)
+        {
+            newPlaza = await _repository.FindPlaza(newPlazaId!.Value, cancellationToken);
+            if (newPlaza == null)
+                return Resultado(false, "not_found", "La plaza indicada no existe.");
+
+            if (newPlaza.Ocupabilidad)
+                return Resultado(false, "conflict", "La plaza indicada ya se encuentra ocupada.");
+        }
+
+        empleado.Nombres = request.Nombres.Trim();
+        empleado.ApellidoPaterno = request.ApellidoPaterno.Trim();
+        empleado.ApellidoMaterno = string.IsNullOrWhiteSpace(request.ApellidoMaterno) ? null : request.ApellidoMaterno.Trim();
+        empleado.FechaNacimiento = request.FechaNacimiento;
+        empleado.Sexo = request.Sexo.Trim().ToUpper();
+        empleado.CURP = curp;
+        empleado.RFC = rfc;
+        empleado.NSS = nss;
+        empleado.FechaIngreso = request.FechaIngreso;
+        empleado.Activo = request.Activo;
+
+        if (!request.Activo)
+        {
+            empleado.PlazaId = null;
+        }
+        else
+        {
+            empleado.PlazaId = request.PlazaId;
+        }
+
+        if (releaseOldPlaza && oldPlaza != null)
+        {
+            oldPlaza.Ocupabilidad = false;
+            oldPlaza.FechaVacancia = DateOnly.FromDateTime(DateTime.Today);
+        }
+
+        if (occupyNewPlaza && newPlaza != null)
+        {
+            newPlaza.Ocupabilidad = true;
+            newPlaza.FechaVacancia = null;
+        }
+
+        await _repository.UpdateEmpleado(empleado, cancellationToken);
+
+        return Resultado(true, "success", "Empleado actualizado correctamente.");
+    }
+
+    public async Task<CatalogOperationResponse> DeleteEmpleado(int id, CancellationToken cancellationToken = default)
+    {
+        var empleado = await _repository.GetEmpleadoById(id, cancellationToken);
+        if (empleado == null)
+            return Resultado(false, "not_found", "El empleado no existe.");
+
+        var countNominas = await _repository.ContarNominasDeEmpleado(id, cancellationToken);
+        if (countNominas > 0)
+        {
+            return Resultado(false, "conflict", "No se puede eliminar al empleado porque tiene nominas registradas.");
+        }
+
+        Plaza? oldPlaza = null;
+        if (empleado.PlazaId.HasValue)
+        {
+            oldPlaza = await _repository.FindPlaza(empleado.PlazaId.Value, cancellationToken);
+        }
+
+        if (oldPlaza != null)
+        {
+            oldPlaza.Ocupabilidad = false;
+            oldPlaza.FechaVacancia = DateOnly.FromDateTime(DateTime.Today);
+        }
+
+        await _repository.DeleteEmpleado(empleado, cancellationToken);
+
+        return Resultado(true, "success", "Empleado eliminado correctamente.");
+    }
 }

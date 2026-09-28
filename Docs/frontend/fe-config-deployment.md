@@ -179,6 +179,7 @@ services:
   frontend:
     image: hospital-frontend:${FRONTEND_IMAGE_TAG:-devel}
     container_name: ${FRONTEND_CONTAINER_NAME:-hospital-frontend}
+    restart: unless-stopped
     build: { context: ., dockerfile: Dockerfile }
     ports: [ "${FRONTEND_HOST_PORT:-5173}:80" ]
     volumes: [ ".:/app", "/app/node_modules" ]
@@ -193,7 +194,11 @@ services:
 
 **Los montajes y `CHOKIDAR_USEPOLLING` son residuos de una configuración de desarrollo y no hacen nada útil aquí**: la imagen final es Nginx sirviendo `/usr/share/nginx/html`, no Node observando `/app`. Montar `.:/app` sobre una imagen de Nginx crea un directorio irrelevante; no hay hot reload. **Todo cambio de código exige reconstruir la imagen.**
 
-Tampoco hay `restart: unless-stopped` (el Compose del backend sí lo tiene, según `.agent/CONTEXT.md`), ni red declarada, ni dependencia del backend.
+Desde el 2026-09-27 el frontend declara `restart: unless-stopped`, igual que el backend. Antes omitía esta política, por lo que Docker no lo arrancaba automáticamente tras reiniciar el servidor. El cambio aplica a desarrollo y producción porque ambos despliegues usan este Compose. Requiere que el servicio Docker arranque con el sistema; un contenedor detenido manualmente permanece detenido. No hay red declarada ni dependencia del backend.
+
+La política se aplica a los contenedores al desplegar la revisión que contiene este cambio. Reejecutar un Action de una revisión anterior no incorpora la corrección. Para corregir un contenedor existente sin reconstruirlo, ejecutar en el servidor `docker update --restart unless-stopped hospital-frontend` (o `hospital-frontend-prod` para producción) y, si está detenido, `docker start` con el mismo nombre. Comprobar la política con `docker inspect --format '{{.Name}} {{.HostConfig.RestartPolicy.Name}} {{.State.Status}}'` seguido del nombre del contenedor. Esta revisión comprobó la configuración local, no el estado del servidor ni un reinicio real.
+
+Referencia: [políticas de reinicio de Docker](https://docs.docker.com/engine/containers/start-containers-automatically/).
 
 ## 9. CI/CD — `.github/workflows/deploy-devel.yml`
 

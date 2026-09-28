@@ -260,4 +260,103 @@ public class HumanResourcesRepository
     {
         await _context.SaveChangesAsync(cancellationToken);
     }
+
+    public async Task<(int Total, List<Empleado> Empleados)> GetEmpleadosPaginados(
+        EmpleadoQueryRequest filtros, int pagina, int tamano, CancellationToken cancellationToken = default)
+    {
+        var consulta = _context.Empleados.AsNoTracking();
+
+        if (!string.IsNullOrEmpty(filtros.Sexo))
+        {
+            consulta = consulta.Where(e => e.Sexo == filtros.Sexo);
+        }
+
+        if (filtros.Activo.HasValue)
+        {
+            consulta = consulta.Where(e => e.Activo == filtros.Activo.Value);
+        }
+
+        var texto = (filtros.Texto ?? string.Empty).Trim();
+        if (texto.Length > 0)
+        {
+            consulta = consulta.Where(e =>
+                e.CURP.Contains(texto) ||
+                e.RFC.Contains(texto) ||
+                e.Nombres.Contains(texto) ||
+                e.ApellidoPaterno.Contains(texto) ||
+                (e.ApellidoMaterno != null && e.ApellidoMaterno.Contains(texto)) ||
+                (e.Plaza != null && e.Plaza.ClavePlaza.Contains(texto)));
+        }
+
+        var total = await consulta.CountAsync(cancellationToken);
+
+        var empleados = await consulta
+            .Include(e => e.Plaza)
+            .OrderBy(e => e.ApellidoPaterno)
+            .ThenBy(e => e.ApellidoMaterno)
+            .ThenBy(e => e.Nombres)
+            .Skip((pagina - 1) * tamano)
+            .Take(tamano)
+            .ToListAsync(cancellationToken);
+
+        return (total, empleados);
+    }
+
+    public async Task<Empleado?> GetEmpleadoById(int id, CancellationToken cancellationToken = default)
+    {
+        return await _context.Empleados
+            .Include(e => e.Plaza)
+            .FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
+    }
+
+    public async Task AddEmpleado(Empleado empleado, CancellationToken cancellationToken = default)
+    {
+        await _context.Empleados.AddAsync(empleado, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task UpdateEmpleado(Empleado empleado, CancellationToken cancellationToken = default)
+    {
+        _context.Empleados.Update(empleado);
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task DeleteEmpleado(Empleado empleado, CancellationToken cancellationToken = default)
+    {
+        _context.Empleados.Remove(empleado);
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<bool> ExisteEmpleadoConCURP(int id, string curp, CancellationToken cancellationToken = default)
+    {
+        return await _context.Empleados
+            .AsNoTracking()
+            .AnyAsync(e => e.Id != id && e.CURP == curp, cancellationToken);
+    }
+
+    public async Task<bool> ExisteEmpleadoConRFC(int id, string rfc, CancellationToken cancellationToken = default)
+    {
+        return await _context.Empleados
+            .AsNoTracking()
+            .AnyAsync(e => e.Id != id && e.RFC == rfc, cancellationToken);
+    }
+
+    public async Task<bool> ExisteEmpleadoConNSS(int id, string nss, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrEmpty(nss))
+        {
+            return false;
+        }
+
+        return await _context.Empleados
+            .AsNoTracking()
+            .AnyAsync(e => e.Id != id && e.NSS == nss, cancellationToken);
+    }
+
+    public async Task<int> ContarNominasDeEmpleado(int id, CancellationToken cancellationToken = default)
+    {
+        return await _context.Nominas
+            .AsNoTracking()
+            .CountAsync(n => n.EmpleadoId == id, cancellationToken);
+    }
 }
